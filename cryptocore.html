@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>CryptoCore · 算力帝国</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg-deep:#020408; --bg-panel:rgba(8,14,24,0.85); --bg-panel-hover:rgba(15,25,40,0.95);
+    --border-subtle:rgba(0,229,255,0.12); --border-glow:rgba(0,229,255,0.4);
+    --cyan:#00e5ff; --cyan-dim:#0088aa; --purple:#b026ff; --pink:#ff0055;
+    --green:#00ff88; --yellow:#ffcc00; --red:#ff0055;
+    --text-main:#e0f0ff; --text-dim:#5a708a;
+    --font-tech:'Orbitron', 'Rajdhani', system-ui, sans-serif;
+    --font-num:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+  html,body{height:100%;overflow:hidden}
+  body{font-family:var(--font-tech);background:var(--bg-deep);color:var(--text-main);font-size:14px;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);letter-spacing:0.03em}
+  body::before{content:"";position:fixed;inset:0;background:linear-gradient(rgba(0,229,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+  body::after{content:"";position:fixed;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.15;animation:scanline 6s linear infinite;pointer-events:none;z-index:1}
+  @keyframes scanline{0%{top:-10%}100%{top:110%}}
+  header{background:linear-gradient(180deg,rgba(0,20,40,0.9),rgba(8,14,24,0.9));padding:12px 16px 8px;border-bottom:1px solid var(--border-subtle);position:relative;z-index:5;backdrop-filter:blur(10px)}
+  .toprow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .title{font-size:15px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:0.15em;display:flex;align-items:center;gap:8px}
+  .title-hex{width:20px;height:20px;background:var(--cyan);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;color:#000;font-size:10px;font-weight:900}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+  .stat{background:rgba(0,229,255,0.03);padding:6px 8px;border:1px solid var(--border-subtle);position:relative;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+  .stat .l{color:var(--text-dim);font-size:9px;text-transform:uppercase;letter-spacing:0.1em}
+  .stat .v{color:var(--cyan);font-weight:700;font-size:12px;font-family:var(--font-num);margin-top:2px}
+  .stat.total .v{color:var(--yellow)}
+  .news-ticker{background:rgba(0,0,0,0.6);color:var(--cyan);padding:6px 0;font-size:11px;white-space:nowrap;overflow:hidden;border-bottom:1px solid var(--border-subtle);position:relative;z-index:4;font-family:var(--font-num)}
+  .news-ticker::before{content:attr(data-label);position:absolute;left:0;top:0;bottom:0;background:var(--pink);color:#fff;padding:6px 10px;font-weight:bold;z-index:1;display:flex;align-items:center;font-size:10px;letter-spacing:0.1em}
+  .news-ticker span{display:inline-block;padding-left:90px;animation:scroll 30s linear infinite}
+  @keyframes scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+  main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:10px;position:relative;z-index:2}
+  .page{display:none;padding:12px;animation:fade .3s ease}
+  .page.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  nav{background:rgba(5,10,18,0.95);border-top:1px solid var(--border-glow);display:flex;padding:8px 4px;padding-bottom:calc(8px + env(safe-area-inset-bottom));position:relative;z-index:5;backdrop-filter:blur(15px)}
+  nav button{flex:1;background:transparent;border:none;color:var(--text-dim);padding:6px 2px;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s;text-transform:uppercase;letter-spacing:0.1em;font-family:var(--font-tech)}
+  nav button.active{color:var(--cyan);text-shadow:0 0 10px var(--cyan)}
+  nav button svg{width:22px;height:22px;transition:all .2s}
+  nav button.active svg{filter:drop-shadow(0 0 5px var(--cyan))}
+  .card{background:var(--bg-panel);border:1px solid var(--border-subtle);padding:14px;margin-bottom:12px;position:relative;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);backdrop-filter:blur(5px)}
+  .card::before,.card::after{content:"";position:absolute;width:10px;height:10px;border:1px solid var(--cyan);opacity:0.5}
+  .card::before{top:0;left:0;border-right:none;border-bottom:none}
+  .card::after{bottom:0;right:0;border-left:none;border-top:none}
+  .card h3{font-size:12px;margin-bottom:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.15em;display:flex;align-items:center;gap:6px}
+  .card h3::before{content:"";width:4px;height:14px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+  .mine-hero{text-align:center;padding:20px 10px}
+  .reactor{position:relative;width:220px;height:220px;margin:0 auto 16px}
+  .reactor-glow{position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,255,0.15),transparent 70%);animation:pulseGlow 3s ease-in-out infinite;pointer-events:none}
+  @keyframes pulseGlow{0%,100%{opacity:0.5;transform:scale(0.95)}50%{opacity:1;transform:scale(1.05)}}
+  .reactor-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(0,229,255,0.2);pointer-events:none}
+  .reactor-ring.outer{border-style:dashed;animation:spin 20s linear infinite;border-color:rgba(0,229,255,0.4)}
+  .reactor-ring.inner{inset:15px;border-width:1px;border-color:rgba(176,38,255,0.3);animation:spin 15s linear infinite reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hash-circle{position:absolute;inset:30px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#0a1525,#020408);border:2px solid var(--cyan);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(0,229,255,0.3),inset 0 0 20px rgba(0,229,255,0.1);cursor:pointer;user-select:none;touch-action:manipulation;transition:transform .1s cubic-bezier(0.2,0.8,0.2,1),box-shadow .1s}
+  .hash-circle:active{transform:scale(0.92);box-shadow:0 0 50px rgba(0,229,255,0.6),inset 0 0 30px rgba(0,229,255,0.3)}
+  .hash-value{font-size:28px;font-weight:800;color:var(--cyan);font-family:var(--font-num);text-shadow:0 0 10px var(--cyan)}
+  .hash-unit{font-size:10px;color:var(--text-dim);margin-top:2px;letter-spacing:0.2em}
+  .hash-label{font-size:9px;color:var(--cyan-dim);margin-top:6px;text-transform:uppercase;letter-spacing:0.15em}
+  .click-hint{font-size:10px;color:var(--text-dim);margin-bottom:12px;opacity:.6;letter-spacing:0.1em}
+  .particle{position:absolute;width:4px;height:4px;background:var(--cyan);box-shadow:0 0 6px var(--cyan);border-radius:50%;pointer-events:none;animation:particleFly 0.8s cubic-bezier(0.1,0.8,0.3,1) forwards}
+  @keyframes particleFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+  .float-num{position:absolute;pointer-events:none;font-weight:bold;color:var(--cyan);font-size:14px;font-family:var(--font-num);text-shadow:0 0 8px var(--cyan);animation:floatUp 1s ease-out forwards;z-index:10}
+  @keyframes floatUp{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-80px) scale(1.5)}}
+  .mine-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .mine-stat{background:rgba(0,229,255,0.03);padding:10px;text-align:center;border:1px solid var(--border-subtle);position:relative}
+  .mine-stat::before{content:"";position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.3}
+  .mine-stat .l{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em}
+  .mine-stat .v{font-size:14px;font-weight:700;color:var(--text-main);margin-top:4px;font-family:var(--font-num)}
+  .mine-stat.diff .v{color:var(--pink)}
+  .btn{background:linear-gradient(135deg,rgba(0,229,255,0.1),rgba(0,229,255,0.05));border:1px solid var(--cyan-dim);color:var(--cyan);padding:10px 14px;font-size:12px;font-weight:600;cursor:pointer;width:100%;transition:all .2s;text-transform:uppercase;letter-spacing:0.1em;font-family:var(--font-tech);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+  .btn:hover{background:rgba(0,229,255,0.2);box-shadow:0 0 15px rgba(0,229,255,0.2)}
+  .btn:active{transform:scale(0.97)}
+  .btn:disabled{opacity:.3;cursor:not-allowed;filter:grayscale(1)}
+  .btn.sec{background:rgba(255,255,255,0.02);border-color:var(--border-subtle);color:var(--text-dim)}
+  .btn.sm{padding:6px 10px;font-size:10px}
+  .btn.red{background:linear-gradient(135deg,rgba(255,0,85,0.2),rgba(255,0,85,0.05));border-color:var(--pink);color:var(--pink)}
+  .btn.green{background:linear-gradient(135deg,rgba(0,255,136,0.2),rgba(0,255,136,0.05));border-color:var(--green);color:var(--green)}
+  .btn.primary{background:linear-gradient(135deg,var(--cyan),var(--cyan-dim));color:#000;border:none;font-weight:700}
+  .price-display{text-align:center;padding:12px}
+  .price-big{font-size:32px;font-weight:800;color:var(--yellow);font-family:var(--font-num);text-shadow:0 0 15px rgba(255,204,0,0.3)}
+  .price-change{font-size:13px;margin-top:4px;font-family:var(--font-num);font-weight:600}
+  .price-change.up{color:var(--green)}
+  .price-change.down{color:var(--pink)}
+  .chart-wrap{position:relative;width:100%;height:120px;margin-top:10px}
+  #chart{width:100%;height:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle)}
+  .pulse-dot{position:absolute;width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 10px var(--green);pointer-events:none;transform:translate(-50%,-50%);animation:dotPulse 1.5s ease-in-out infinite}
+  @keyframes dotPulse{0%,100%{box-shadow:0 0 5px var(--green)}50%{box-shadow:0 0 20px var(--green),0 0 40px var(--green)}}
+  .trade-row{display:flex;gap:8px;margin-top:8px}
+  .trade-row input{flex:1;background:rgba(0,0,0,0.4);border:1px solid var(--border-subtle);color:var(--text-main);padding:10px;font-size:13px;font-family:var(--font-num);outline:none;transition:border-color .2s}
+  .trade-row input:focus{border-color:var(--cyan)}
+  .quick-btns{display:flex;gap:4px;margin-top:8px}
+  .quick-btns button{flex:1;background:rgba(0,229,255,0.05);border:1px solid var(--border-subtle);color:var(--text-dim);padding:6px;font-size:10px;font-family:var(--font-num);cursor:pointer;transition:all .2s}
+  .quick-btns button:hover{background:rgba(0,229,255,0.15);color:var(--cyan)}
+  .item{background:var(--bg-panel);border:1px solid var(--border-subtle);padding:12px;margin-bottom:8px;position:relative;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:all .2s}
+  .item:hover{background:var(--bg-panel-hover);border-color:var(--border-glow)}
+  .item.owned{border-color:rgba(0,255,136,0.3)}
+  .item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+  .item-name{font-size:13px;font-weight:700;color:var(--text-main)}
+  .item-era{font-size:9px;color:var(--purple);background:rgba(176,38,255,0.15);padding:2px 6px;margin-left:6px;letter-spacing:0.1em}
+  .item-desc{font-size:10px;color:var(--text-dim);margin:6px 0;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .item-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:6px}
+  .item-stats{font-size:10px;color:var(--green);font-family:var(--font-num)}
+  .item-price{font-size:13px;font-weight:700;color:var(--yellow);font-family:var(--font-num)}
+  .filter-bar{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+  .filter-bar button{background:rgba(0,229,255,0.03);border:1px solid var(--border-subtle);color:var(--text-dim);padding:6px 12px;font-size:10px;white-space:nowrap;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:0.1em;font-family:var(--font-tech)}
+  .filter-bar button.active{background:rgba(0,229,255,0.15);color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,0.2)}
+  .unlock-hint{text-align:center;color:var(--text-dim);font-size:11px;padding:24px 12px;background:rgba(0,0,0,0.3);border:1px dashed var(--border-subtle)}
+  .rig-slot{background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
+  .rig-slot:hover{border-color:var(--border-glow)}
+  .slot-empty{color:var(--text-dim);font-style:italic;font-size:11px}
+  .slot-label{font-size:9px;color:var(--cyan-dim);text-transform:uppercase;letter-spacing:0.15em}
+  .slot-name{font-size:12px;font-weight:600;margin-top:3px}
+  .slot-stats{font-size:10px;color:var(--green);margin-top:3px;font-family:var(--font-num)}
+  .log-entry{font-size:11px;padding:8px 10px;border-left:2px solid var(--cyan-dim);background:rgba(0,0,0,0.3);margin-bottom:4px;font-family:var(--font-num)}
+  .log-entry .t{color:var(--text-dim);font-size:9px;margin-top:2px}
+  .log-entry.warn{border-color:var(--pink)}
+  .log-entry.good{border-color:var(--green)}
+  .toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(5,10,18,0.95);border:1px solid var(--cyan);padding:10px 18px;font-size:12px;z-index:2000;box-shadow:0 0 20px rgba(0,229,255,0.3);backdrop-filter:blur(10px);animation:toastIn .2s,toastOut .2s 2.3s forwards;max-width:90%;text-align:center;letter-spacing:0.05em}
+  .toast.news{border-color:var(--yellow);color:var(--yellow);box-shadow:0 0 20px rgba(255,204,0,0.3)}
+  @keyframes toastIn{from{opacity:0;transform:translate(-50%,-15px)}}
+  @keyframes toastOut{to{opacity:0;transform:translate(-50%,-15px)}}
+  .empty{text-align:center;color:var(--text-dim);padding:24px 12px;font-size:12px}
+  .save-bar{display:flex;gap:6px}
+  .save-bar button{flex:1;font-size:9px;padding:6px 8px}
+  .tutorial-overlay{position:fixed;inset:0;z-index:1500;pointer-events:none;display:none}
+  .tutorial-overlay.active{display:block;pointer-events:auto}
+  .tutorial-mask{position:absolute;inset:0;background:rgba(2,4,8,0.9);transition:clip-path .3s ease}
+  .tutorial-box{position:absolute;left:5%;right:5%;background:rgba(8,14,24,0.98);border:1px solid var(--cyan);padding:16px;box-shadow:0 0 30px rgba(0,229,255,0.4);z-index:1501;backdrop-filter:blur(15px);clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+  .tutorial-box h4{color:var(--cyan);font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:0.1em}
+  .tutorial-box p{font-size:12px;color:var(--text-main);line-height:1.6;margin-bottom:12px;font-family:system-ui,sans-serif}
+  .tutorial-box .step-ind{font-size:10px;color:var(--text-dim);text-align:right;margin-bottom:8px;font-family:var(--font-num)}
+  .tutorial-highlight{position:relative;z-index:1502;box-shadow:0 0 0 9999px rgba(2,4,8,0.9);border-radius:4px}
+  .hash-circle.tutorial-highlight{border-radius:50%}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="toprow">
+    <div class="title"><div class="title-hex">C</div> <span data-i18n="title">CryptoCore</span></div>
+    <div class="save-bar">
+      <button class="btn sec sm" id="langBtn" onclick="toggleLang()">EN</button>
+      <button class="btn sec sm" onclick="saveGame()" data-i18n="save">SAVE</button>
+      <button class="btn sec sm" onclick="resetGame()" data-i18n="reset">RESET</button>
+    </div>
+  </div>
+  <div class="stats" id="headerStats">
+    <div class="stat"><div class="l" data-i18n="credits">CREDITS</div><div class="v" id="money">$0</div></div>
+    <div class="stat"><div class="l" data-i18n="coins">COINS</div><div class="v" id="coins">0</div></div>
+    <div class="stat"><div class="l" data-i18n="price">PRICE</div><div class="v" id="price">$10</div></div>
+    <div class="stat total"><div class="l" data-i18n="net_worth">NET WORTH</div><div class="v" id="total">$0</div></div>
+  </div>
+</header>
+
+<div class="news-ticker" id="newsTicker" data-label="[SYS_MSG]"><span id="newsText">SYSTEM INITIALIZED. MONITORING MARKET FEEDS...</span></div>
+
+<main>
+  <section class="page active" id="page-mine">
+    <div class="card mine-hero">
+      <div class="reactor" id="reactor">
+        <div class="reactor-glow"></div>
+        <div class="reactor-ring outer"></div>
+        <div class="reactor-ring inner"></div>
+        <div class="hash-circle" id="hashCircle" onpointerdown="manualMine(event)">
+          <div class="hash-value" id="hashRate">0</div>
+          <div class="hash-unit">H/s</div>
+          <div class="hash-label" data-i18n="hash_rate">HASH RATE</div>
+        </div>
+        <div id="particleContainer" style="position:absolute;inset:0;pointer-events:none;overflow:visible"></div>
+      </div>
+      <div class="click-hint" data-i18n="tap_hint">[ TAP CORE TO MINE MANUALLY ]</div>
+      <div class="mine-stats">
+        <div class="mine-stat"><div class="l" data-i18n="yield_sec">YIELD / SEC</div><div class="v" id="cps">0</div></div>
+        <div class="mine-stat"><div class="l" data-i18n="yield_hr">YIELD / HR</div><div class="v" id="cph">0</div></div>
+        <div class="mine-stat diff"><div class="l" data-i18n="net_diff">NET DIFFICULTY</div><div class="v" id="difficulty">1.00</div></div>
+        <div class="mine-stat"><div class="l" data-i18n="total_mined">TOTAL MINED</div><div class="v" id="totalMined">0</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="sys_status">SYSTEM STATUS</h3>
+      <div style="font-size:11px;color:var(--text-dim);line-height:1.8;font-family:var(--font-num)" id="bonusInfo"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-market">
+    <div class="card">
+      <h3 data-i18n="market_feed">MARKET FEED (CRX)</h3>
+      <div class="price-display">
+        <div class="price-big" id="marketPrice">$10.00</div>
+        <div class="price-change" id="priceChange">+0.00%</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart"></canvas><div class="pulse-dot" id="pulseDot" style="display:none"></div></div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="acquire">ACQUIRE</h3>
+      <div class="trade-row">
+        <input type="number" id="buyAmount" data-i18n-ph="amount" placeholder="AMOUNT" min="0" step="0.0001">
+        <button class="btn green sm" onclick="buyCoins()" data-i18n="buy">BUY</button>
+      </div>
+      <div class="quick-btns">
+        <button onclick="quickBuy(0.25)">25%</button><button onclick="quickBuy(0.5)">50%</button>
+        <button onclick="quickBuy(0.75)">75%</button><button onclick="quickBuy(1)" data-i18n="max">MAX</button>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:8px;font-family:var(--font-num)" id="buyPreview"></div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="liquidate">LIQUIDATE</h3>
+      <div class="trade-row">
+        <input type="number" id="sellAmount" data-i18n-ph="amount" placeholder="AMOUNT" min="0" step="0.0001">
+        <button class="btn red sm" onclick="sellCoins()" data-i18n="sell">SELL</button>
+      </div>
+      <div class="quick-btns">
+        <button onclick="quickSell(0.25)">25%</button><button onclick="quickSell(0.5)">50%</button>
+        <button onclick="quickSell(0.75)">75%</button><button onclick="quickSell(1)" data-i18n="all">ALL</button>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:8px;font-family:var(--font-num)" id="sellPreview"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-store">
+    <div class="filter-bar" id="filterBar"></div>
+    <div id="storeList"></div>
+  </section>
+
+  <section class="page" id="page-rig">
+    <div class="card">
+      <h3 data-i18n="rig_config">RIG CONFIGURATION</h3>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;font-family:var(--font-num)"><span data-i18n="total_hash">TOTAL HASH</span>: <b style="color:var(--cyan)" id="rigHash">0 H/s</b></div>
+      <div id="rigSlots"></div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="salvage_parts">SALVAGE PARTS</h3>
+      <div id="sellParts" style="font-size:11px;color:var(--text-dim)"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-log">
+    <div class="card">
+      <h3 data-i18n="sys_log">SYSTEM LOG</h3>
+      <button class="btn sec sm" onclick="clearLog()" style="margin-bottom:10px" data-i18n="clear_buffer">CLEAR BUFFER</button>
+      <div id="logList"></div>
+    </div>
+  </section>
+</main>
+
+<nav id="bottomNav">
+  <button class="active" data-page="mine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg><span data-i18n="nav_core">CORE</span></button>
+  <button data-page="market"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span data-i18n="nav_market">MARKET</span></button>
+  <button data-page="store"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-i18n="nav_modules">MODULES</span></button>
+  <button data-page="rig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg><span data-i18n="nav_rig">RIG</span></button>
+  <button data-page="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg><span data-i18n="nav_log">LOG</span></button>
+</nav>
+
+<div class="tutorial-overlay" id="tutorialOverlay">
+  <div class="tutorial-mask" id="tutorialMask"></div>
+  <div class="tutorial-box" id="tutorialBox">
+    <div class="step-ind" id="tutStepInd">1/5</div>
+    <h4 id="tutTitle"></h4>
+    <p id="tutContent"></p>
+    <button class="btn primary" id="tutBtn" onclick="nextTutorial()"></button>
+  </div>
+</div>
+
+<script>
+// ========== I18N 多语言系统 ==========
+const I18N = {
+  zh: {
+    title:"CryptoCore", save:"存档", reset:"重置", credits:"信用点", coins:"持币", price:"币价", net_worth:"净资产",
+    hash_rate:"算力", tap_hint:"[ 点击核心手动挖矿 ]", yield_sec:"每秒产出", yield_hr:"每小时产出", net_diff:"全网难度", total_mined:"总挖出",
+    sys_status:"系统状态", no_modifiers:"暂无加成", pwr_draw:"功率消耗", pwr_overload:"⚠ 电源过载：算力减半！",
+    market_feed:"市场行情 (CRX)", acquire:"买入", amount:"数量", buy:"买入", liquidate:"卖出", sell:"卖出", max:"最大", all:"全部",
+    est_cost:"预计花费", est_yield:"预计获得", invalid_amount:"请输入有效数量", insufficient_credits:"资金不足", insufficient_coins:"持币不足", trans_complete:"交易完成",
+    nav_core:"核心", nav_market:"市场", nav_modules:"组件", nav_rig:"矿机", nav_log:"日志",
+    rig_config:"矿机配置", total_hash:"综合算力", empty_slot:"[ 空插槽 ]", source:"选购", swap:"更换", salvage_parts:"出售闲置", no_idle:"暂无闲置组件", salvage:"回收", scrap:"出售",
+    sys_log:"系统日志", clear_buffer:"清空日志", no_entries:"[ 暂无日志 ]",
+    locked_hint:"[ 锁定 ] 净资产达到 {val} 后解锁", equipped:"已装备", equip:"装备", acquire_btn:"购买", eff:"效能", cap:"承载",
+    module_installed:"组件已安装", pwr_warn_log:"⚠ 功率 {draw}W 超过电源 {cap}W 限制！",
+    save_success:"系统状态已保存", save_fail:"保存失败", sys_restored:"系统状态已恢复", new_session:"新会话启动。检测到遗留硬件。",
+    confirm_wipe:"确认清除系统？所有进度将丢失。", offline_mining:"离线挖矿: {time}。产出: {val} CRX", scrapped_log:"已出售 {name}，获得 {val}",
+    news_prefix:"📰 新闻: ", acquired_log:"买入 {amt} 币，花费 {cost}", liquidated_log:"卖出 {amt} 币，获得 {rev}",
+    tut_1_t:"系统启动", tut_1_c:"欢迎使用 CryptoCore。你继承了一台1992年的486终端。你的目标是：挖掘CRX，积累财富，升级矿机，最终实现算力奇点。",
+    tut_2_t:"手动覆写", tut_2_c:"这是你的挖矿反应堆。在早期阶段，<b>手动点击核心</b>是生成算力最快的方式。现在点击它来启动序列。", tut_2_b:"我已点击",
+    tut_3_t:"遥测面板", tut_3_c:"在顶部HUD监控你的<b>信用点、持币、币价和净资产</b>。净资产决定了硬件的解锁。注意<b>新闻滚动条</b>以捕捉市场异常。",
+    tut_4_t:"硬件采购", tut_4_c:"访问<b>[组件]</b>页签购买升级配件。<b>警告：</b>高级配件耗电巨大。升级电源以避免算力节流。",
+    tut_5_t:"市场交易", tut_5_c:"访问<b>[市场]</b>页签将挖出的CRX兑换为信用点，或逢低买入。建立你的帝国，拿下RTX 4090。",
+    tut_next:"下一步", tut_eng:"启动系统", sys_msg:"[系统消息]"
+  },
+  en: {
+    title:"CryptoCore", save:"SAVE", reset:"RESET", credits:"CREDITS", coins:"COINS", price:"PRICE", net_worth:"NET WORTH",
+    hash_rate:"HASH RATE", tap_hint:"[ TAP CORE TO MINE MANUALLY ]", yield_sec:"YIELD / SEC", yield_hr:"YIELD / HR", net_diff:"NET DIFFICULTY", total_mined:"TOTAL MINED",
+    sys_status:"SYSTEM STATUS", no_modifiers:"NO ACTIVE MODIFIERS", pwr_draw:"PWR DRAW", pwr_overload:"⚠ POWER OVERLOAD: HASH HALVED!",
+    market_feed:"MARKET FEED (CRX)", acquire:"ACQUIRE", amount:"AMOUNT", buy:"BUY", liquidate:"LIQUIDATE", sell:"SELL", max:"MAX", all:"ALL",
+    est_cost:"EST. COST", est_yield:"EST. YIELD", invalid_amount:"INVALID AMOUNT", insufficient_credits:"INSUFFICIENT CREDITS", insufficient_coins:"INSUFFICIENT COINS", trans_complete:"TRANSACTION COMPLETE",
+    nav_core:"CORE", nav_market:"MARKET", nav_modules:"MODULES", nav_rig:"RIG", nav_log:"LOG",
+    rig_config:"RIG CONFIGURATION", total_hash:"TOTAL HASH", empty_slot:"[ EMPTY SLOT ]", source:"SOURCE", swap:"SWAP", salvage_parts:"SALVAGE PARTS", no_idle:"NO IDLE COMPONENTS", salvage:"SALVAGE", scrap:"SCRAP",
+    sys_log:"SYSTEM LOG", clear_buffer:"CLEAR BUFFER", no_entries:"[ NO LOG ENTRIES ]",
+    locked_hint:"[ LOCKED ] REACH {val} NET WORTH TO DECRYPT", equipped:"EQUIPPED", equip:"EQUIP", acquire_btn:"ACQUIRE", eff:"EFF", cap:"CAP",
+    module_installed:"MODULE INSTALLED", pwr_warn_log:"WARNING: POWER DRAW {draw}W EXCEEDS PSU {cap}W",
+    save_success:"SYSTEM STATE SAVED", save_fail:"SAVE FAILED", sys_restored:"SYSTEM STATE RESTORED", new_session:"NEW SESSION INITIATED. LEGACY HARDWARE DETECTED.",
+    confirm_wipe:"CONFIRM SYSTEM WIPE? ALL PROGRESS WILL BE LOST.", offline_mining:"OFFLINE MINING: {time}. YIELD: {val} CRX", scrapped_log:"SCRAPPED {name} FOR {val}",
+    news_prefix:"NEWS: ", acquired_log:"ACQUIRED {amt} CRX FOR {cost}", liquidated_log:"LIQUIDATED {amt} CRX FOR {rev}",
+    tut_1_t:"SYSTEM BOOT", tut_1_c:"Welcome to CryptoCore. You have inherited a legacy 1992 486 terminal. Your objective: mine CRX, accumulate wealth, and upgrade your rig to achieve singularity.",
+    tut_2_t:"MANUAL OVERRIDE", tut_2_c:"This is your mining reactor. In the early stages, <b>tapping the core manually</b> is the fastest way to generate hash power. Tap it now to initiate.", tut_2_b:"SEQUENCE INITIATED",
+    tut_3_t:"TELEMETRY", tut_3_c:"Monitor your <b>Credits, Coins, Price, and Net Worth</b> in the top HUD. Net Worth dictates hardware decryption. Watch the <b>news feed</b> for market anomalies.",
+    tut_4_t:"HARDWARE ACQUISITION", tut_4_c:"Access the <b>[MODULES]</b> tab to purchase upgraded components. <b>WARNING:</b> High-tier parts draw massive power. Upgrade your PSU to avoid throttling.",
+    tut_5_t:"MARKET EXCHANGE", tut_5_c:"Access the <b>[MARKET]</b> tab to liquidate mined CRX for credits, or acquire dips. Build your empire and acquire the RTX 4090.",
+    tut_next:"NEXT", tut_eng:"ENGAGE SYSTEM", sys_msg:"[SYS_MSG]"
+  }
+};
+
+let currentLang = 'zh';
+function t(key, vars) {
+  let str = I18N[currentLang][key] || I18N['zh'][key] || key;
+  if(vars) Object.keys(vars).forEach(k => str = str.replace(`{${k}}`, vars[k]));
+  return str;
+}
+function applyStaticI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.getElementById('newsTicker').setAttribute('data-label', t('sys_msg'));
+  document.getElementById('langBtn').textContent = currentLang === 'zh' ? 'EN' : '中';
+}
+function toggleLang() {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  state.lang = currentLang;
+  applyStaticI18n();
+  render();
+  renderFilter();
+  renderLog();
+  if(state.tutorialStep >= 0) renderTutorialStep();
+}
+
+// ========== 真实硬件数据库 (含双语描述) ==========
+const HARDWARE = [
+  {id:"cpu_threadripper",cat:"cpu",name:"AMD Threadripper 7980X",year:2023,unlock:8000000,price:4500000,hash:2800000,power:350,desc:"Zen 4架构，64核128线程，基于Chiplet设计的HEDT终极怪兽，拥有恐怖的128条PCIe 5.0通道。",desc_en:"Zen 4, 64C/128T, HEDT monster with 128 PCIe 5.0 lanes."},
+  {id:"cpu_i9_14900k",cat:"cpu",name:"Intel Core i9-14900K",year:2023,unlock:2500000,price:2800000,hash:1600000,power:253,desc:"Raptor Lake Refresh，Intel 7工艺，24核32线程，最高睿频6.0GHz，单核性能极强。",desc_en:"Raptor Lake Refresh, 24C/32T, 6.0GHz boost, extreme single-core."},
+  {id:"cpu_ryzen9_7950x",cat:"cpu",name:"AMD Ryzen 9 7950X",year:2022,unlock:1800000,price:1800000,hash:1200000,power:170,desc:"Zen 4架构，5nm工艺，16核32线程，AM5平台旗舰，能效比优秀。",desc_en:"Zen 4, 5nm, 16C/32T, AM5 flagship, great efficiency."},
+  {id:"cpu_i9_12900k",cat:"cpu",name:"Intel Core i9-12900K",year:2021,unlock:1000000,price:900000,hash:800000,power:241,desc:"Alder Lake，首次采用大小核混合架构，Intel 7工艺，扭转颓势。",desc_en:"Alder Lake, hybrid P/E cores, Intel 7 process."},
+  {id:"cpu_ryzen9_5950x",cat:"cpu",name:"AMD Ryzen 9 5950X",year:2020,unlock:600000,price:550000,hash:500000,power:105,desc:"Zen 3架构，7nm工艺，16核32线程，统一CCX设计大幅降低延迟。",desc_en:"Zen 3, 7nm, 16C/32T, unified CCX design."},
+  {id:"cpu_ryzen9_3900x",cat:"cpu",name:"AMD Ryzen 9 3900X",year:2019,unlock:300000,price:220000,hash:250000,power:105,desc:"Zen 2架构，台积电7nm，首款消费级12核处理器，Chiplet小芯片设计。",desc_en:"Zen 2, 7nm, 12-core, Chiplet design."},
+  {id:"cpu_i9_9900k",cat:"cpu",name:"Intel Core i9-9900K",year:2018,unlock:150000,price:110000,hash:120000,power:95,desc:"Coffee Lake，14nm++工艺，8核16线程，钎焊散热，5GHz睿频。",desc_en:"Coffee Lake, 14nm++, 8C/16T, soldered TIM, 5GHz."},
+  {id:"cpu_ryzen7_1800x",cat:"cpu",name:"AMD Ryzen 7 1800X",year:2017,unlock:60000,price:45000,hash:60000,power:95,desc:"初代Zen架构，14nm，8核16线程，打破Intel挤牙膏垄断。",desc_en:"1st Gen Zen, 14nm, 8C/16T, broke Intel's monopoly."},
+  {id:"cpu_i7_4770k",cat:"cpu",name:"Intel Core i7-4770K",year:2013,unlock:20000,price:15000,hash:25000,power:84,desc:"Haswell架构，22nm 3D晶体管，4核8线程，支持AVX2，一代神U。",desc_en:"Haswell, 22nm, 4C/8T, AVX2 support."},
+  {id:"cpu_i7_2600k",cat:"cpu",name:"Intel Core i7-2600K",year:2011,unlock:10000,price:8000,hash:12000,power:95,desc:"Sandy Bridge，32nm工艺，IPC大幅提升，超频潜力极佳。",desc_en:"Sandy Bridge, 32nm, massive IPC gain, great OC."},
+  {id:"cpu_phenom2",cat:"cpu",name:"AMD Phenom II X4 955",year:2009,unlock:5000,price:3500,hash:5000,power:125,desc:"K10架构，45nm工艺，黑盒版不锁倍频，性价比高但功耗较高。",desc_en:"K10, 45nm, Black Edition unlocked, high TDP."},
+  {id:"cpu_i7_920",cat:"cpu",name:"Intel Core i7-920",year:2009,unlock:4000,price:2800,hash:4000,power:130,desc:"Nehalem架构，45nm，4核8线程，引入超线程和QPI总线。",desc_en:"Nehalem, 45nm, 4C/8T, introduced HT and QPI."},
+  {id:"cpu_e6600",cat:"cpu",name:"Intel Core 2 Duo E6600",year:2006,unlock:2000,price:5500,hash:1800,power:65,desc:"Conroe核心，65nm，Core微架构，彻底终结Pentium 4的高频低能。",desc_en:"Conroe, 65nm, Core microarchitecture."},
+  {id:"cpu_athlon64",cat:"cpu",name:"AMD Athlon 64 3200+",year:2005,unlock:1200,price:2800,hash:1000,power:89,desc:"K8架构，首款消费级64位处理器，内置内存控制器。",desc_en:"K8, 1st consumer 64-bit, integrated IMC."},
+  {id:"cpu_p4",cat:"cpu",name:"Intel Pentium 4 3.0C",year:2003,unlock:700,price:1400,hash:500,power:80,desc:"Northwood核心，NetBurst架构，800MHz FSB，3GHz高频但IPC较低。",desc_en:"Northwood, NetBurst, 800MHz FSB, high clock low IPC."},
+  {id:"cpu_xp2500",cat:"cpu",name:"AMD Athlon XP 2500+",year:2003,unlock:400,price:650,hash:280,power:68,desc:"Barton核心，0.13微米，512KB L2缓存，超频潜力极大。",desc_en:"Barton, 130nm, 512KB L2, massive OC potential."},
+  {id:"cpu_p3",cat:"cpu",name:"Intel Pentium III 800EB",year:2000,unlock:150,price:280,hash:100,power:45,desc:"Coppermine核心，0.18微米，256KB全速L2缓存，首次引入SSE。",desc_en:"Coppermine, 180nm, 256KB L2, introduced SSE."},
+  {id:"cpu_celeron300a",cat:"cpu",name:"Intel Celeron 300A",year:1998,unlock:60,price:120,hash:45,power:30,desc:"Mendocino核心，内置128KB全速L2缓存，几乎每颗都能超频到450MHz。",desc_en:"Mendocino, 128KB L2, legendary 450MHz OC."},
+  {id:"cpu_pentium_mmx",cat:"cpu",name:"Intel Pentium MMX 233",year:1997,unlock:30,price:50,hash:25,power:28,desc:"引入MMX多媒体指令集，提升了音视频处理能力。",desc_en:"Introduced MMX instructions."},
+  {id:"cpu_pentium",cat:"cpu",name:"Intel Pentium 100",year:1994,unlock:10,price:20,hash:10,power:25,desc:"第一代Pentium，超标量架构，每周期执行两条指令。",desc_en:"1st Gen Pentium, superscalar architecture."},
+  {id:"cpu_486",cat:"cpu",name:"Intel 80486DX2-66",year:1992,unlock:0,price:0,hash:3,power:15,desc:"内置8KB L1缓存和数学协处理器，主频66MHz，DOS时代的经典。",desc_en:"8KB L1, FPU, 66MHz, DOS era classic."},
+
+  {id:"gpu_rtx4090",cat:"gpu",name:"NVIDIA RTX 4090",year:2022,unlock:3000000,price:2200000,hash:2500000,power:450,desc:"Ada Lovelace架构，AD102核心，16384个CUDA核心，24GB GDDR6X。",desc_en:"Ada Lovelace, 16384 CUDA, 24GB GDDR6X."},
+  {id:"gpu_rx6900xt",cat:"gpu",name:"AMD RX 6900 XT",year:2020,unlock:1200000,price:600000,hash:800000,power:300,desc:"RDNA 2架构，Navi 21核心，16GB GDDR6，Infinity Cache技术。",desc_en:"RDNA 2, Navi 21, 16GB, Infinity Cache."},
+  {id:"gpu_rtx3090",cat:"gpu",name:"NVIDIA RTX 3090",year:2020,unlock:1500000,price:900000,hash:1200000,power:350,desc:"Ampere架构，GA102核心，24GB GDDR6X，8K游戏和AI训练利器。",desc_en:"Ampere, GA102, 24GB GDDR6X, 8K/AI beast."},
+  {id:"gpu_rtx3080",cat:"gpu",name:"NVIDIA RTX 3080",year:2020,unlock:800000,price:350000,hash:600000,power:320,desc:"Ampere架构，8704个CUDA核心，10GB GDDR6X，能效比惊人。",desc_en:"Ampere, 8704 CUDA, 10GB GDDR6X."},
+  {id:"gpu_rx5700xt",cat:"gpu",name:"AMD RX 5700 XT",year:2019,unlock:200000,price:80000,hash:120000,power:225,desc:"RDNA架构，7nm工艺，Navi 10核心，彻底放弃GCN架构。",desc_en:"RDNA, 7nm, Navi 10, ditched GCN."},
+  {id:"gpu_rtx2080ti",cat:"gpu",name:"NVIDIA RTX 2080 Ti",year:2018,unlock:300000,price:150000,hash:200000,power:250,desc:"Turing架构，首次引入RT Core和Tensor Core，开启光追时代。",desc_en:"Turing, 1st RT/Tensor Cores, Ray Tracing era."},
+  {id:"gpu_gtx1080ti",cat:"gpu",name:"NVIDIA GTX 1080 Ti",year:2017,unlock:120000,price:60000,hash:150000,power:250,desc:"Pascal架构，GP102核心，11GB GDDR5X，性能寿命极长。",desc_en:"Pascal, GP102, 11GB GDDR5X, legendary lifespan."},
+  {id:"gpu_gtx1080",cat:"gpu",name:"NVIDIA GTX 1080",year:2016,unlock:80000,price:35000,hash:80000,power:180,desc:"Pascal架构，16nm工艺，2560个CUDA核心，8GB GDDR5X。",desc_en:"Pascal, 16nm, 2560 CUDA, 8GB GDDR5X."},
+  {id:"gpu_gtx1070",cat:"gpu",name:"NVIDIA GTX 1070",year:2016,unlock:50000,price:18000,hash:45000,power:150,desc:"Pascal架构，性价比甜点卡，8GB GDDR5。",desc_en:"Pascal, sweet spot, 8GB GDDR5."},
+  {id:"gpu_gtx980ti",cat:"gpu",name:"NVIDIA GTX 980 Ti",year:2015,unlock:30000,price:12000,hash:30000,power:250,desc:"Maxwell架构，GM200核心，6GB GDDR5，能效比极高。",desc_en:"Maxwell, GM200, 6GB GDDR5, high efficiency."},
+  {id:"gpu_gtx680",cat:"gpu",name:"NVIDIA GTX 680",year:2012,unlock:8000,price:3000,hash:8000,power:195,desc:"Kepler架构，28nm工艺，GK104核心，首次引入GPU Boost。",desc_en:"Kepler, 28nm, GK104, 1st GPU Boost."},
+  {id:"gpu_hd7970",cat:"gpu",name:"AMD Radeon HD 7970",year:2011,unlock:6000,price:2200,hash:6000,power:250,desc:"GCN架构初代，Tahiti核心，28nm，3GB GDDR5。",desc_en:"1st Gen GCN, Tahiti, 28nm, 3GB GDDR5."},
+  {id:"gpu_gtx580",cat:"gpu",name:"NVIDIA GTX 580",year:2010,unlock:4000,price:1500,hash:4000,power:244,desc:"Fermi架构完整版，512个CUDA核心，早期比特币挖矿热门。",desc_en:"Fermi, 512 CUDA, early BTC mining favorite."},
+  {id:"gpu_gtx260",cat:"gpu",name:"NVIDIA GTX 260",year:2008,unlock:1500,price:500,hash:1200,power:182,desc:"Tesla架构，GT200核心，65nm/55nm，216个流处理器。",desc_en:"Tesla, GT200, 216 SPs."},
+  {id:"gpu_hd4870",cat:"gpu",name:"AMD Radeon HD 4870",year:2008,unlock:1200,price:400,hash:900,power:150,desc:"RV770核心，首次采用GDDR5显存，流处理器暴增至800个。",desc_en:"RV770, 1st GDDR5, 800 SPs."},
+  {id:"gpu_8800gtx",cat:"gpu",name:"NVIDIA 8800 GTX",year:2006,unlock:800,price:280,hash:500,power:145,desc:"G80核心，首次采用统一着色器架构，128个流处理器，CUDA诞生。",desc_en:"G80, unified shaders, 128 SPs, CUDA birth."},
+  {id:"gpu_6800ultra",cat:"gpu",name:"NVIDIA 6800 Ultra",year:2004,unlock:300,price:120,hash:150,power:110,desc:"NV40核心，支持DirectX 9.0c和Shader Model 3.0。",desc_en:"NV40, DX 9.0c, SM 3.0."},
+  {id:"gpu_9700pro",cat:"gpu",name:"ATI Radeon 9700 Pro",year:2002,unlock:150,price:60,hash:60,power:65,desc:"R300核心，业界首款支持DirectX 9.0的显卡。",desc_en:"R300, 1st DX 9.0 GPU."},
+  {id:"gpu_ti4600",cat:"gpu",name:"NVIDIA GeForce 4 Ti 4600",year:2002,unlock:80,price:35,hash:30,power:60,desc:"NV25核心，DirectX 8.1时代的王者。",desc_en:"NV25, DX 8.1 king."},
+  {id:"gpu_gf256",cat:"gpu",name:"NVIDIA GeForce 256 DDR",year:1999,unlock:20,price:12,hash:8,power:30,desc:"世界首块'GPU'，首次集成硬件T&L，开创GPU名词。",desc_en:"World's 1st 'GPU', hardware T&L."},
+  {id:"gpu_tnt2",cat:"gpu",name:"NVIDIA RIVA TNT2",year:1999,unlock:10,price:6,hash:4,power:20,desc:"NV5核心，支持32位色深和AGP 4x，确立NVIDIA霸主地位。",desc_en:"NV5, 32-bit color, AGP 4x."},
+  {id:"gpu_voodoo2",cat:"gpu",name:"3dfx Voodoo2 12MB",year:1998,unlock:5,price:3,hash:2,power:20,desc:"传奇3D加速卡，支持SLI双卡互联，Glide API独步江湖。",desc_en:"Legendary 3D accelerator, SLI, Glide API."},
+  {id:"gpu_none",cat:"gpu",name:"(No Dedicated GPU)",year:1990,unlock:0,price:0,hash:0,power:0,desc:"仅使用集成显卡，算力为零。",desc_en:"Integrated graphics only. Zero hash."},
+
+  {id:"ram_128gb",cat:"ram",name:"128GB DDR5-5600 (4x32)",year:2023,unlock:2000000,price:450000,hash:0,power:30,boost:1.50,desc:"四通道DDR5满载配置，自带PMIC，ECC纠错。",desc_en:"Quad-channel DDR5, PMIC, ECC."},
+  {id:"ram_64gb",cat:"ram",name:"64GB DDR5-6000",year:2023,unlock:800000,price:180000,hash:0,power:18,boost:1.20,desc:"第五代DDR，1.1V电压，双32位通道。",desc_en:"DDR5, 1.1V, dual 32-bit channels."},
+  {id:"ram_32gb",cat:"ram",name:"32GB DDR4-3200",year:2018,unlock:100000,price:60000,hash:0,power:14,boost:0.80,desc:"第四代DDR，1.2V电压，XMP可达3200MHz+。",desc_en:"DDR4, 1.2V, XMP 3200MHz+."},
+  {id:"ram_16gb",cat:"ram",name:"16GB DDR3-1600",year:2012,unlock:20000,price:15000,hash:0,power:12,boost:0.50,desc:"第三代DDR，1.5V电压，1600MHz甜点频率。",desc_en:"DDR3, 1.5V, 1600MHz sweet spot."},
+  {id:"ram_8gb",cat:"ram",name:"8GB DDR2-800",year:2007,unlock:6000,price:4000,hash:0,power:10,boost:0.35,desc:"第二代DDR，1.8V，240针，Core 2时代高端配置。",desc_en:"DDR2, 1.8V, 240-pin, Core 2 era high-end."},
+  {id:"ram_4gb",cat:"ram",name:"4GB DDR2-667",year:2006,unlock:3000,price:1800,hash:0,power:8,boost:0.25,desc:"双通道DDR2配置，满足Windows Vista需求。",desc_en:"Dual-channel DDR2, Vista ready."},
+  {id:"ram_1gb",cat:"ram",name:"1GB DDR-400",year:2003,unlock:800,price:400,hash:0,power:6,boost:0.15,desc:"双倍数据速率内存，400MHz。",desc_en:"DDR, 400MHz."},
+  {id:"ram_512mb",cat:"ram",name:"512MB SDRAM PC133",year:2000,unlock:200,price:100,hash:0,power:5,boost:0.08,desc:"PC133标准，133MHz总线。",desc_en:"PC133 SDRAM, 133MHz bus."},
+  {id:"ram_128mb",cat:"ram",name:"128MB SDRAM PC100",year:1998,unlock:50,price:25,hash:0,power:4,boost:0.04,desc:"同步动态随机存储器，PC100标准。",desc_en:"PC100 SDRAM."},
+  {id:"ram_32mb",cat:"ram",name:"32MB EDO SIMM",year:1996,unlock:15,price:8,hash:0,power:3,boost:0.02,desc:"Extended Data Out内存，比FPM快10-15%。",desc_en:"EDO SIMM, 10-15% faster than FPM."},
+  {id:"ram_4mb",cat:"ram",name:"4MB FPM SIMM",year:1992,unlock:0,price:0,hash:0,power:2,boost:0,desc:"Fast Page Mode内存，72针SIMM，60ns延迟。",desc_en:"FPM SIMM, 72-pin, 60ns latency."},
+
+  {id:"mb_x670e",cat:"mb",name:"X670E 主板 (AM5)",year:2022,unlock:1500000,price:500000,hash:0,power:35,boost:0.80,desc:"AMD X670E芯片组，支持PCIe 5.0显卡和SSD，DDR5。",desc_en:"X670E, PCIe 5.0, DDR5."},
+  {id:"mb_z790",cat:"mb",name:"Z790 主板 (LGA1700)",year:2022,unlock:1000000,price:350000,hash:0,power:30,boost:0.70,desc:"Intel Z790，支持12-14代酷睿，PCIe 5.0，DDR5-7800+。",desc_en:"Z790, PCIe 5.0, DDR5-7800+."},
+  {id:"mb_x570",cat:"mb",name:"X570 主板 (AM4)",year:2019,unlock:150000,price:80000,hash:0,power:28,boost:0.50,desc:"AMD X570，首款支持PCIe 4.0的消费级芯片组。",desc_en:"X570, 1st consumer PCIe 4.0."},
+  {id:"mb_z370",cat:"mb",name:"Z370 主板 (LGA1151)",year:2017,unlock:60000,price:35000,hash:0,power:25,boost:0.35,desc:"Intel Z370，支持8代酷睿，供电大幅加强。",desc_en:"Z370, 8th Gen Coffee Lake support."},
+  {id:"mb_z87",cat:"mb",name:"Z87 主板 (LGA1150)",year:2013,unlock:15000,price:8000,hash:0,power:22,boost:0.20,desc:"Intel Z87，支持Haswell，原生USB 3.0和SATA 6Gbps。",desc_en:"Z87, Haswell, native USB 3.0/SATA 6Gbps."},
+  {id:"mb_p67",cat:"mb",name:"P67 主板 (LGA1155)",year:2011,unlock:8000,price:4000,hash:0,power:20,boost:0.12,desc:"Intel P67，搭配Sandy Bridge，超频能力极强。",desc_en:"P67, Sandy Bridge, extreme OC."},
+  {id:"mb_p35",cat:"mb",name:"P35 主板 (LGA775)",year:2007,unlock:2500,price:1200,hash:0,power:18,boost:0.08,desc:"Intel P35，支持DDR3和DDR2，FSB 1333MHz。",desc_en:"P35, DDR3/DDR2, 1333MHz FSB."},
+  {id:"mb_nf2",cat:"mb",name:"nForce2 Ultra 400",year:2003,unlock:400,price:200,hash:0,power:15,boost:0.05,desc:"NVIDIA nForce2芯片组，支持双通道DDR400。",desc_en:"nForce2, dual-channel DDR400."},
+  {id:"mb_bx",cat:"mb",name:"Slot 1 440BX主板",year:1998,unlock:40,price:20,hash:0,power:10,boost:0.02,desc:"Intel 440BX，史上最经典芯片组，支持100MHz FSB。",desc_en:"440BX, legendary chipset, 100MHz FSB."},
+  {id:"mb_486",cat:"mb",name:"486 ISA/VLB主板",year:1992,unlock:0,price:0,hash:0,power:5,boost:0,desc:"Socket 3接口，ISA和VESA Local Bus插槽。",desc_en:"Socket 3, ISA/VLB slots."},
+
+  {id:"psu_2000w",cat:"psu",name:"2000W 80Plus Titanium",year:2023,unlock:2000000,price:80000,hash:0,power:0,maxpower:2000,desc:"2000W钛金认证，最高效率94%，全日系电容。",desc_en:"2000W Titanium, 94% eff, Japanese caps."},
+  {id:"psu_1600w",cat:"psu",name:"1600W 80Plus Titanium",year:2022,unlock:800000,price:45000,hash:0,power:0,maxpower:1600,desc:"1600W钛金认证，全桥LLC谐振。",desc_en:"1600W Titanium, LLC resonant."},
+  {id:"psu_1000w",cat:"psu",name:"1000W 80Plus Platinum",year:2018,unlock:200000,price:18000,hash:0,power:0,maxpower:1000,desc:"1000W白金牌，效率92%以上，全模组设计。",desc_en:"1000W Platinum, >92% eff, full modular."},
+  {id:"psu_850w",cat:"psu",name:"850W 80Plus Gold",year:2015,unlock:80000,price:8000,hash:0,power:0,maxpower:850,desc:"850W金牌，50%负载效率≥90%，DC-DC转换。",desc_en:"850W Gold, DC-DC."},
+  {id:"psu_650w",cat:"psu",name:"650W 80Plus Bronze",year:2010,unlock:15000,price:2500,hash:0,power:0,maxpower:650,desc:"650W铜牌，效率82%以上，主动PFC。",desc_en:"650W Bronze, Active PFC."},
+  {id:"psu_500w",cat:"psu",name:"500W ATX 2.0电源",year:2005,unlock:3000,price:800,hash:0,power:0,maxpower:500,desc:"ATX 2.0标准，24针+4针CPU，主动PFC。",desc_en:"ATX 2.0, 24+4 pin, Active PFC."},
+  {id:"psu_300w",cat:"psu",name:"300W ATX电源",year:1998,unlock:50,price:30,hash:0,power:0,maxpower:300,desc:"ATX 1.0标准，引入+3.3V和软关机。",desc_en:"ATX 1.0, +3.3V, soft power."},
+  {id:"psu_200w",cat:"psu",name:"200W AT电源",year:1992,unlock:0,price:0,hash:0,power:0,maxpower:200,desc:"AT标准，物理拨动开关，不支持软关机。",desc_en:"AT standard, physical switch."},
+
+  {id:"ssd_4tb",cat:"storage",name:"4TB NVMe PCIe 5.0 SSD",year:2023,unlock:3000000,price:600000,hash:0,power:12,boost:0.35,desc:"PCIe 5.0 x4，顺序读取高达14000MB/s。",desc_en:"PCIe 5.0 x4, 14000MB/s read."},
+  {id:"ssd_2tb",cat:"storage",name:"2TB NVMe PCIe 4.0 SSD",year:2022,unlock:800000,price:150000,hash:0,power:8,boost:0.25,desc:"PCIe 4.0 x4，读取7000MB/s，3D TLC NAND。",desc_en:"PCIe 4.0 x4, 7000MB/s, 3D TLC."},
+  {id:"ssd_1tb",cat:"storage",name:"1TB NVMe PCIe 3.0 SSD",year:2018,unlock:100000,price:35000,hash:0,power:6,boost:0.15,desc:"PCIe 3.0 x4，读取3500MB/s，M.2接口。",desc_en:"PCIe 3.0 x4, 3500MB/s, M.2."},
+  {id:"ssd_256gb",cat:"storage",name:"256GB SATA SSD",year:2010,unlock:8000,price:3000,hash:0,power:3,boost:0.08,desc:"早期消费级固态，SATA II，读取250MB/s。",desc_en:"Early SATA II SSD, 250MB/s."},
+  {id:"hdd_1tb",cat:"storage",name:"1TB 7200RPM SATA HDD",year:2007,unlock:2000,price:800,hash:0,power:8,boost:0.04,desc:"单碟容量突破，SATA 3Gbps接口，32MB缓存。",desc_en:"1TB, 7200RPM, SATA 3Gbps, 32MB cache."},
+  {id:"hdd_80gb",cat:"storage",name:"80GB 7200RPM IDE",year:2002,unlock:200,price:80,hash:0,power:6,boost:0.02,desc:"7200转，2MB缓存，Ultra DMA/100。",desc_en:"80GB, 7200RPM, UDMA/100."},
+  {id:"hdd_10gb",cat:"storage",name:"10GB 5400RPM IDE",year:1998,unlock:20,price:10,hash:0,power:5,boost:0.01,desc:"5400转，512KB缓存。",desc_en:"10GB, 5400RPM, 512KB cache."},
+  {id:"hdd_500mb",cat:"storage",name:"500MB IDE硬盘",year:1992,unlock:0,price:0,hash:0,power:4,boost:0,desc:"3.5英寸，5400RPM，12ms寻道。",desc_en:"500MB, 5400RPM, 12ms seek."}
+];
+HARDWARE.sort((a,b) => b.year - a.year);
+const CAT_NAMES = {cpu:"CPU",gpu:"GPU",ram:"RAM",mb:"MOBO",psu:"PSU",storage:"STORAGE"};
+const CATS = ["cpu","gpu","ram","mb","psu","storage"];
+
+// ========== 新闻系统 (双语) ==========
+const NEWS_POOL = [
+  {zh:"传闻某大国正在大规模采购显卡用于AI大模型训练，市场货源紧张。",en:"Rumors of massive GPU stockpiling for AI training cause market shortage.",effect:{priceVol:1.2,hwPrice:1.25,dur:20}},
+  {zh:"某知名虚拟币交易所遭到黑客攻击，大量用户资产疑似被盗。",en:"Major crypto exchange hacked, massive user funds allegedly stolen.",effect:{priceVol:2.0,priceMod:0.85,dur:15}},
+  {zh:"华尔街某金融巨头正式向SEC提交虚拟币现货ETF申请。",en:"Wall Street giant officially files for spot crypto ETF with SEC.",effect:{priceMod:1.15,priceVol:1.3,dur:25}},
+  {zh:"全球硅片短缺加剧，台积电宣布先进制程代工价格上调10%。",en:"Global silicon shortage worsens, TSMC raises advanced node prices by 10%.",effect:{hwPrice:1.3,dur:25}},
+  {zh:"环保组织在多地抗议，呼吁立法限制高能耗的虚拟币挖矿行为。",en:"Environmental groups protest, urging laws to limit high-energy crypto mining.",effect:{diffMod:1.15,priceVol:1.2,dur:15}},
+  {zh:"某科技巨头发布新一代AI算力芯片，宣称能效比提升300%。",en:"Tech giant unveils next-gen AI chip, claiming 300% efficiency boost.",effect:{hwPrice:0.85,diffMod:1.1,dur:20}},
+  {zh:"美联储暗示可能在下个月大幅调整基准利率，市场情绪谨慎。",en:"Fed hints at major interest rate adjustment next month, market cautious.",effect:{priceVol:1.8,priceMod:0.95,dur:15}},
+  {zh:"某大型矿场因变压器火灾损毁数万台矿机，全网算力骤降。",en:"Transformer fire at mega-farm destroys tens of thousands of rigs, network hash drops.",effect:{diffMod:0.7,priceMod:1.05,dur:15}},
+  {zh:"知名分析师发文称：虚拟币是'纯粹的投机泡沫'，建议清仓。",en:"Top analyst calls crypto a 'pure speculative bubble', advises liquidation.",effect:{priceMod:0.92,priceVol:1.4,dur:10}},
+  {zh:"某国央行宣布将虚拟币纳入合法监管框架，并颁发首批牌照。",en:"Central bank integrates crypto into legal framework, issues first licenses.",effect:{priceMod:1.2,priceVol:0.8,dur:25}},
+  {zh:"内存颗粒大厂宣布减产，全球DRAM和NAND价格疑似触底反弹。",en:"Memory giant announces production cuts, DRAM/NAND prices expected to rebound.",effect:{hwPrice:1.2,dur:20}},
+  {zh:"暗网市场宣布全面采用CryptoX作为唯一结算货币。",en:"Darknet market adopts CryptoX as exclusive settlement currency.",effect:{priceMod:1.08,diffMod:1.1,dur:15}},
+  {zh:"某开源社区发布新型挖矿算法，宣称可绕过现有硬件限制。",en:"Open-source community releases new mining algo, bypassing hardware limits.",effect:{diffMod:1.25,hwPrice:0.9,dur:20}},
+  {zh:"全球物流港口罢工，大量电子产品集装箱滞留海上。",en:"Global port strikes leave massive electronics containers stranded at sea.",effect:{hwPrice:1.35,dur:15}},
+  {zh:"马斯克在社交媒体上发布了一个神秘的狗狗表情。",en:"Musk posts a cryptic doge emoji on social media.",effect:{priceVol:2.5,priceMod:1.1,dur:10}},
+  {zh:"某国宣布将虚拟币挖矿列为高污染行业，拟征收额外碳税。",en:"Country classifies crypto mining as high-pollution, proposes carbon tax.",effect:{diffMod:1.1,priceMod:0.95,dur:18}},
+  {zh:"硅谷某AI初创公司获得巨额融资，宣布将购买一万张高端显卡。",en:"Silicon Valley AI startup secures massive funding, to buy 10k high-end GPUs.",effect:{hwPrice:1.15,diffMod:1.05,dur:15}},
+  {zh:"知名做空机构发布长达50页报告，直指CryptoX是庞氏骗局。",en:"Short-seller publishes 50-page report calling CryptoX a Ponzi scheme.",effect:{priceMod:0.85,priceVol:2.0,dur:12}},
+  {zh:"美联储主席表示，目前不考虑推出央行数字货币(CBDC)。",en:"Fed Chair states no plans for Central Bank Digital Currency (CBDC) currently.",effect:{priceMod:1.05,priceVol:0.9,dur:20}},
+  {zh:"台风袭击东南亚某国，导致全球重要的半导体封测基地停工。",en:"Typhoon hits SE Asia, halting major semiconductor packaging facilities.",effect:{hwPrice:1.25,dur:18}},
+  {zh:"某黑客组织宣布盗取了某去中心化跨链桥的数亿美元资产。",en:"Hacker group claims theft of hundreds of millions from decentralized bridge.",effect:{priceMod:0.9,priceVol:1.5,dur:12}},
+  {zh:"华尔街日报：传统金融机构对虚拟币现货ETF的兴趣正在降温。",en:"WSJ: TradFi interest in spot crypto ETFs is cooling down.",effect:{priceMod:0.92,priceVol:1.1,dur:15}},
+  {zh:"某知名科技博主直播用废旧显卡搭建矿机，引发网友模仿热潮。",en:"Tech influencer builds rig from scrap GPUs on stream, sparking trend.",effect:{diffMod:1.15,hwPrice:1.05,dur:12}},
+  {zh:"国际能源署报告称，全球数据中心和挖矿耗电量已超过某中等国家。",en:"IEA reports global data center and mining power use exceeds a mid-sized country.",effect:{priceVol:1.3,diffMod:1.1,dur:15}},
+  {zh:"某大型矿机制造商宣布下一代ASIC矿机即将流片，算力预计提升十倍。",en:"Major rig maker announces next-gen ASIC taping out, 10x hash expected.",effect:{hwPrice:0.8,diffMod:1.2,dur:20}},
+  {zh:"某国最高法院裁定，虚拟币属于合法个人财产，受法律保护。",en:"Supreme Court rules crypto as legal personal property, protected by law.",effect:{priceMod:1.12,priceVol:0.85,dur:25}},
+  {zh:"全球最大显卡代工厂因劳资纠纷宣布停产三天。",en:"World's largest GPU foundry halts production for 3 days due to labor dispute.",effect:{hwPrice:1.15,dur:10}},
+  {zh:"某大学研究团队发表论文，称发现了SHA-256算法的潜在数学弱点。",en:"University team publishes paper on potential mathematical weakness in SHA-256.",effect:{priceVol:2.2,priceMod:0.88,diffMod:0.9,dur:15}},
+  {zh:"虚拟币支付网关Stripe宣布重新支持CryptoX收款。",en:"Payment gateway Stripe announces renewed support for CryptoX.",effect:{priceMod:1.1,dur:20}},
+  {zh:"某国警方破获特大虚拟币洗钱案，查封数个大型矿场。",en:"Police bust massive crypto laundering ring, seizing several large farms.",effect:{diffMod:0.85,priceMod:0.95,priceVol:1.3,dur:15}},
+  {zh:"业内人士透露，某大厂正在秘密研发基于光子计算的新一代显卡。",en:"Insiders reveal major tech co. secretly developing photonic GPUs.",effect:{hwPrice:0.9,priceVol:1.2,dur:18}},
+  {zh:"CryptoX核心开发者社区因路线分歧宣布硬分叉，网络出现短暂拥堵。",en:"CryptoX core devs announce hard fork over roadmap dispute, brief congestion.",effect:{priceVol:1.8,priceMod:0.92,diffMod:1.05,dur:12}},
+  {zh:"某大型电力公司宣布为合规矿场提供专属优惠电价。",en:"Major utility company offers exclusive discounted rates for compliant farms.",effect:{diffMod:1.2,hwPrice:1.1,dur:20}},
+  {zh:"华尔街某对冲基金被曝出在暗中大量囤积高端显卡。",en:"Wall Street hedge fund caught hoarding high-end GPUs in secret.",effect:{hwPrice:1.3,diffMod:1.1,dur:15}},
+  {zh:"全球互联网骨干网出现短暂路由故障，部分矿池节点掉线。",en:"Brief routing glitch on global internet backbone takes some pool nodes offline.",effect:{diffMod:0.9,priceVol:1.4,dur:10}}
+];
+
+let currentNewsEffect = {priceVol:1, priceMod:1, hwPrice:1, diffMod:1, dur:0};
+
+function triggerNews(){
+  const news = NEWS_POOL[Math.floor(Math.random()*NEWS_POOL.length)];
+  const text = currentLang === 'zh' ? news.zh : news.en;
+  document.getElementById('newsText').textContent = "   " + text + "   ";
+  currentNewsEffect = {priceVol:news.effect.priceVol||1,priceMod:news.effect.priceMod||1,hwPrice:news.effect.hwPrice||1,diffMod:news.effect.diffMod||1,dur:news.effect.dur||15};
+  const el = document.createElement("div");
+  el.className = "toast news";
+  el.innerHTML = "⚠ " + text;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 2500);
+  addLog(t('news_prefix') + text);
+}
+
+// ========== 游戏状态 ==========
+let state = {
+  money:100, coins:0, totalMined:0, price:10, priceHistory:[10], priceBase:10, priceTime:0,
+  rig:{cpu:"cpu_486",gpu:"gpu_none",ram:"ram_4mb",mb:"mb_486",psu:"psu_200w",storage:"hdd_500mb"},
+  owned:["cpu_486","gpu_none","ram_4mb","mb_486","psu_200w","hdd_500mb"],
+  difficulty:1.0, log:[], ticks:0, clicks:0, tutorialStep:0, lastNewsTick:0, lang:'zh'
+};
+
+function fmt(n,d=2){if(isNaN(n))return"0";if(n>=1e9)return(n/1e9).toFixed(2)+"B";if(n>=1e6)return(n/1e6).toFixed(2)+"M";if(n>=1e3)return(n/1e3).toFixed(1)+"K";return n.toFixed(d)}
+function fmtMoney(n){return"$"+fmt(n,0)}
+function getTotalAssets(){return state.money+state.coins*state.price}
+function addLog(msg,type=""){const t_str=new Date().toLocaleTimeString("zh-CN",{hour12:false});state.log.unshift({msg,type,t:t_str});if(state.log.length>80)state.log.pop();renderLog()}
+function toast(msg){const el=document.createElement("div");el.className="toast";el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2000)}
+
+function calcHash(){
+  const cpu=HARDWARE.find(h=>h.id===state.rig.cpu),gpu=HARDWARE.find(h=>h.id===state.rig.gpu),ram=HARDWARE.find(h=>h.id===state.rig.ram),mb=HARDWARE.find(h=>h.id===state.rig.mb),stor=HARDWARE.find(h=>h.id===state.rig.storage);
+  let base=(cpu?.hash||0)+(gpu?.hash||0);let boost=1+(ram?.boost||0)+(mb?.boost||0)+(stor?.boost||0);return base*boost;
+}
+function calcPower(){let t=0;for(const s in state.rig){const h=HARDWARE.find(x=>x.id===state.rig[s]);if(h)t+=h.power}return t}
+function calcMaxPower(){return HARDWARE.find(h=>h.id===state.rig.psu)?.maxpower||200}
+function calcCPS(){
+  const hash=calcHash(),over=calcPower()>calcMaxPower(),eff=hash*(over?0.5:1);
+  const diffMod=currentNewsEffect.dur>0?currentNewsEffect.diffMod:1;
+  return(eff*0.0003)/(state.difficulty*diffMod);
+}
+function updateDifficulty(){let d=1.0;if(state.totalMined>50)d+=Math.pow((state.totalMined-50)/200,1.2);d+=state.ticks*0.000015;state.difficulty=Math.max(1,d)}
+
+function manualMine(e){
+  e.preventDefault();if(state.tutorialStep===1)nextTutorial();
+  const hash=calcHash();let gain=Math.max(0.02,(hash*0.0005)/Math.pow(state.difficulty,0.6));
+  state.coins+=gain;state.totalMined+=gain;state.clicks++;
+  const circle=document.getElementById('hashCircle'),rect=circle.getBoundingClientRect();
+  let cx=e.clientX,cy=e.clientY;if(e.touches&&e.touches.length>0){cx=e.touches[0].clientX;cy=e.touches[0].clientY}
+  if(cx===0&&cy===0){cx=rect.left+rect.width/2;cy=rect.top+rect.height/2}
+  const x=cx-rect.left,y=cy-rect.top;
+  const fl=document.createElement('div');fl.className='float-num';fl.textContent='+'+gain.toFixed(3);fl.style.left=x+'px';fl.style.top=y+'px';circle.appendChild(fl);setTimeout(()=>fl.remove(),1000);
+  spawnParticles(rect.width/2,rect.height/2);
+  if(navigator.vibrate)navigator.vibrate(10);render();
+}
+function spawnParticles(cx,cy){
+  const container=document.getElementById('particleContainer');
+  for(let i=0;i<10;i++){
+    const p=document.createElement('div');p.className='particle';
+    const angle=(Math.PI*2*i)/10+(Math.random()-0.5)*0.8,distance=50+Math.random()*70;
+    p.style.setProperty('--tx',`${Math.cos(angle)*distance}px`);p.style.setProperty('--ty',`${Math.sin(angle)*distance}px`);
+    p.style.left=`${cx}px`;p.style.top=`${cy}px`;container.appendChild(p);setTimeout(()=>p.remove(),800);
+  }
+}
+
+function updatePrice(){
+  state.priceTime++;const trend=1+state.priceTime*0.00008;
+  const cycle=Math.sin(state.priceTime*0.05)*0.3+Math.sin(state.priceTime*0.013)*0.2;const noise=(Math.random()-0.5)*0.15;
+  let volMod=currentNewsEffect.dur>0?currentNewsEffect.priceVol:1,priceMod=currentNewsEffect.dur>0?currentNewsEffect.priceMod:1;
+  let change=1+(cycle*0.02+noise*0.02)*volMod;
+  state.priceBase*=change*Math.pow(trend,0.0001)*(priceMod>1?1.005:priceMod<1?0.995:1);
+  state.price=Math.max(0.5,state.priceBase);state.priceHistory.push(state.price);if(state.priceHistory.length>60)state.priceHistory.shift();
+}
+
+function tick(){
+  state.ticks++;updateDifficulty();const cps=calcCPS();state.coins+=cps;state.totalMined+=cps;
+  const power=calcPower(),maxP=calcMaxPower();
+  if(power>maxP&&state.ticks%50===0)addLog(t('pwr_warn_log',{draw:power,cap:maxP}),"warn");
+  if(state.ticks%3===0)updatePrice();
+  if(state.ticks-state.lastNewsTick>35+Math.random()*40){triggerNews();state.lastNewsTick=state.ticks}
+  if(currentNewsEffect.dur>0)currentNewsEffect.dur--;
+  render();saveTimer++;if(saveTimer>=30){saveGame(true);saveTimer=0}
+}
+let saveTimer=0;
+
+function buyCoins(){
+  const amt=parseFloat(document.getElementById("buyAmount").value);if(!amt||amt<=0){toast(t('invalid_amount'));return}
+  const cost=amt*state.price;if(cost>state.money){toast(t('insufficient_credits'));return}
+  state.money-=cost;state.coins+=amt;addLog(t('acquired_log',{amt:fmt(amt,4),cost:fmtMoney(cost)}),"good");toast(t('trans_complete'));document.getElementById("buyAmount").value="";render();
+}
+function sellCoins(){
+  const amt=parseFloat(document.getElementById("sellAmount").value);if(!amt||amt<=0){toast(t('invalid_amount'));return}
+  if(amt>state.coins){toast(t('insufficient_coins'));return}
+  const rev=amt*state.price;state.coins-=amt;state.money+=rev;addLog(t('liquidated_log',{amt:fmt(amt,4),rev:fmtMoney(rev)}),"good");toast(t('trans_complete'));document.getElementById("sellAmount").value="";render();
+}
+function quickBuy(p){document.getElementById("buyAmount").value=((state.money/state.price)*p).toFixed(4);updatePreview()}
+function quickSell(p){document.getElementById("sellAmount").value=(state.coins*p).toFixed(4);updatePreview()}
+function updatePreview(){
+  const b=parseFloat(document.getElementById("buyAmount").value)||0;document.getElementById("buyPreview").textContent=b>0?`${t('est_cost')}: ${fmtMoney(b*state.price)}`:"";
+  const s=parseFloat(document.getElementById("sellAmount").value)||0;document.getElementById("sellPreview").textContent=s>0?`${t('est_yield')}: ${fmtMoney(s*state.price)}`:"";
+}
+
+let currentFilter="cpu";
+function renderFilter(){document.getElementById("filterBar").innerHTML=CATS.map(c=>`<button class="${c===currentFilter?'active':''}" onclick="setFilter('${c}')">${CAT_NAMES[c]}</button>`).join("")}
+function setFilter(c){currentFilter=c;renderFilter();renderStore()}
+function renderStore(){
+  const total=getTotalAssets(),hwPriceMod=currentNewsEffect.dur>0?currentNewsEffect.hwPrice:1;
+  let list=HARDWARE.filter(h=>h.cat===currentFilter&&h.unlock<=total);const el=document.getElementById("storeList");
+  if(list.length===0){const minUnlock=HARDWARE.filter(h=>h.cat===currentFilter).sort((a,b)=>a.unlock-b.unlock)[0]?.unlock||0;el.innerHTML=`<div class="unlock-hint">${t('locked_hint',{val:fmtMoney(minUnlock)})}</div>`;return}
+  el.innerHTML=list.map(h=>{
+    const owned=state.owned.includes(h.id),equipped=state.rig[h.cat]===h.id,realPrice=Math.floor(h.price*hwPriceMod),canAfford=state.money>=realPrice;
+    let actions="";if(equipped)actions=`<button class="btn sec sm" disabled>${t('equipped')}</button>`;else if(owned)actions=`<button class="btn sm" onclick="equip('${h.id}')">${t('equip')}</button>`;else actions=`<button class="btn sm" ${canAfford?'':'disabled'} onclick="buyItem('${h.id}',${realPrice})">${t('acquire_btn')}</button>`;
+    const stats=[];if(h.hash>0)stats.push(`+${fmt(h.hash,0)} H/s`);if(h.boost>0)stats.push(`+${(h.boost*100).toFixed(0)}% ${t('eff')}`);if(h.maxpower>0)stats.push(`${h.maxpower}W ${t('cap')}`);
+    const desc = currentLang === 'zh' ? h.desc : (h.desc_en || h.desc);
+    return`<div class="item ${owned?'owned':''}"><div class="item-head"><div><span class="item-name">${h.name}</span><span class="item-era">${h.year}</span>${equipped?`<span style="color:var(--green);font-size:10px;margin-left:6px">[ACTIVE]</span>`:''}</div></div><div class="item-desc">${desc}</div><div class="item-foot"><div class="item-stats">${stats.join(" | ")} ${h.power>0?`| ${h.power}W`:""}</div><div style="display:flex;gap:6px;align-items:center">${realPrice>0?`<span class="item-price">${fmtMoney(realPrice)}</span>`:''}${actions}</div></div></div>`;
+  }).join("");
+}
+function buyItem(id,price){
+  const h=HARDWARE.find(x=>x.id===id);if(!h)return;const cost=price||h.price;
+  if(state.money<cost){toast(t('insufficient_credits'));return}
+  state.money-=cost;state.owned.push(h.id);addLog(`ACQUIRED: ${h.name} [${fmtMoney(cost)}]`,"good");toast(t('module_installed'));equip(id);
+}
+function equip(id){
+  const h=HARDWARE.find(x=>x.id===id);if(!h||!state.owned.includes(id))return;
+  if(h.cat!=="psu"){const testP=calcPower()-(HARDWARE.find(x=>x.id===state.rig[h.cat])?.power||0)+h.power;if(testP>calcMaxPower())addLog(t('pwr_warn_log',{draw:testP,cap:calcMaxPower()}),"warn")}
+  state.rig[h.cat]=id;addLog(`EQUIPPED: ${h.name}`);render();
+}
+
+function renderRig(){
+  const el=document.getElementById("rigSlots");
+  el.innerHTML=CATS.map(cat=>{
+    const h=HARDWARE.find(x=>x.id===state.rig[cat]);
+    if(!h)return`<div class="rig-slot"><div><div class="slot-label">${CAT_NAMES[cat]}</div><div class="slot-name slot-empty">${t('empty_slot')}</div></div><button class="btn sec sm" onclick="setFilter('${cat}');switchPage('store')">${t('source')}</button></div>`;
+    const stats=[];if(h.hash>0)stats.push(`+${fmt(h.hash,0)} H/s`);if(h.boost>0)stats.push(`+${(h.boost*100).toFixed(0)}%`);if(h.maxpower>0)stats.push(`${h.maxpower}W`);
+    return`<div class="rig-slot"><div style="flex:1"><div class="slot-label">${CAT_NAMES[cat]}</div><div class="slot-name">${h.name} <span style="color:var(--text-dim);font-size:9px">${h.year}</span></div><div class="slot-stats">${stats.join(" | ")} ${h.power>0?`| ${h.power}W`:""}</div></div><button class="btn sec sm" onclick="setFilter('${cat}');switchPage('store')">${t('swap')}</button></div>`;
+  }).join("");
+  document.getElementById("rigHash").textContent=fmt(calcHash(),0)+" H/s";
+  const used=new Set(Object.values(state.rig)),idle=state.owned.filter(id=>!used.has(id)&&id!=="gpu_none"),sellEl=document.getElementById("sellParts");
+  if(idle.length===0){sellEl.innerHTML=`<span style='color:var(--text-dim)'>${t('no_idle')}</span>`;return}
+  sellEl.innerHTML=idle.map(id=>{
+    const h=HARDWARE.find(x=>x.id===id),sp=Math.floor(h.price*0.5);
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-subtle)"><div><div style="font-size:12px;font-weight:600">${h.name}</div><div style="font-size:10px;color:var(--yellow);font-family:var(--font-num)">${t('salvage')}: ${fmtMoney(sp)}</div></div><button class="btn red sm" onclick="sellPart('${id}')">${t('scrap')}</button></div>`;
+  }).join("");
+}
+function sellPart(id){
+  const h=HARDWARE.find(x=>x.id===id);if(!h)return;const p=Math.floor(h.price*0.5);
+  state.money+=p;state.owned=state.owned.filter(x=>x!==id);addLog(t('scrapped_log',{name:h.name,val:fmtMoney(p)}));toast(`COMPONENT SCRAPPED`);render();
+}
+
+function renderLog(){
+  const el=document.getElementById("logList");if(state.log.length===0){el.innerHTML=`<div class='empty'>${t('no_entries')}</div>`;return}
+  el.innerHTML=state.log.map(l=>`<div class="log-entry ${l.type}"><div>${l.msg}</div><div class="t">${l.t}</div></div>`).join("");
+}
+function clearLog(){state.log=[];renderLog()}
+
+function render(){
+  const power=calcPower(),maxP=calcMaxPower(),over=power>maxP,hash=calcHash()*(over?0.5:1),cps=calcCPS();
+  document.getElementById("money").textContent=fmtMoney(state.money);document.getElementById("coins").textContent=fmt(state.coins,4);
+  document.getElementById("price").textContent=fmtMoney(state.price);document.getElementById("total").textContent=fmtMoney(getTotalAssets());
+  document.getElementById("hashRate").textContent=fmt(hash,0);document.getElementById("cps").textContent=fmt(cps,4);
+  document.getElementById("cph").textContent=fmt(cps*3600,2);document.getElementById("difficulty").textContent=fmt(state.difficulty,2);
+  document.getElementById("totalMined").textContent=fmt(state.totalMined,2);
+  const ram=HARDWARE.find(h=>h.id===state.rig.ram),mb=HARDWARE.find(h=>h.id===state.rig.mb),stor=HARDWARE.find(h=>h.id===state.rig.storage);
+  const bonuses=[];if(ram?.boost)bonuses.push(`RAM ${t('eff')}: +${(ram.boost*100).toFixed(0)}%`);if(mb?.boost)bonuses.push(`MOBO ${t('eff')}: +${(mb.boost*100).toFixed(0)}%`);if(stor?.boost)bonuses.push(`STOR ${t('eff')}: +${(stor.boost*100).toFixed(0)}%`);
+  let bHtml=bonuses.length?bonuses.join("<br>"):t('no_modifiers');
+  bHtml+=`<br>${t('pwr_draw')}: <span style="color:${over?'var(--pink)':'var(--green)'}">${power}W / ${maxP}W</span>`;
+  if(over)bHtml+=`<br><span style='color:var(--pink)'>${t('pwr_overload')}</span>`;
+  document.getElementById("bonusInfo").innerHTML=bHtml;
+  const prev=state.priceHistory[state.priceHistory.length-2]||state.price,chg=((state.price-prev)/prev*100);
+  document.getElementById("marketPrice").textContent=fmtMoney(state.price);
+  const pc=document.getElementById("priceChange");pc.textContent=(chg>=0?"+":"")+chg.toFixed(2)+"%";pc.className="price-change "+(chg>=0?"up":"down");
+  drawChart();updatePreview();renderStore();renderRig();
+}
+
+function drawChart(){
+  const c=document.getElementById("chart");if(!c)return;const ctx=c.getContext("2d"),dpr=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
+  c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle="rgba(0,229,255,0.05)";ctx.lineWidth=1;
+  for(let i=0;i<5;i++){const y=(h/5)*i;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+  for(let i=0;i<8;i++){const x=(w/8)*i;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+  const data=state.priceHistory;if(data.length<2)return;
+  const min=Math.min(...data)*0.95,max=Math.max(...data)*1.05,range=max-min||1,color=data[data.length-1]>=data[0]?"#00ff88":"#ff0055";
+  ctx.shadowColor=color;ctx.shadowBlur=10;ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();
+  data.forEach((v,i)=>{const x=(i/(data.length-1))*w,y=h-((v-min)/range)*h;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
+  ctx.shadowBlur=0;ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();
+  const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,color+"40");grad.addColorStop(1,color+"00");ctx.fillStyle=grad;ctx.fill();
+  const dot=document.getElementById('pulseDot'),lastY=h-((data[data.length-1]-min)/range)*h;
+  dot.style.display='block';dot.style.left=w+'px';dot.style.top=lastY+'px';dot.style.background=color;dot.style.boxShadow=`0 0 10px ${color}`;
+}
+
+function switchPage(name){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.getElementById("page-"+name).classList.add("active");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===name));render();
+}
+document.querySelectorAll("nav button").forEach(b=>{b.addEventListener("click",()=>{if(state.tutorialStep>=0&&state.tutorialStep<3)return;switchPage(b.dataset.page)})});
+
+const TUTORIAL_STEPS = [
+  {t_key:'tut_1_t',c_key:'tut_1_c',target:null,pos:"center"},
+  {t_key:'tut_2_t',c_key:'tut_2_c',target:"#hashCircle",pos:"bottom",b_key:'tut_2_b'},
+  {t_key:'tut_3_t',c_key:'tut_3_c',target:"#headerStats",pos:"bottom"},
+  {t_key:'tut_4_t',c_key:'tut_4_c',target:"nav button[data-page='store']",pos:"top"},
+  {t_key:'tut_5_t',c_key:'tut_5_c',target:"nav button[data-page='market']",pos:"top"}
+];
+function showTutorial(){document.getElementById('tutorialOverlay').classList.add('active');renderTutorialStep()}
+function renderTutorialStep(){
+  if(state.tutorialStep<0||state.tutorialStep>=TUTORIAL_STEPS.length){endTutorial();return}
+  const step=TUTORIAL_STEPS[state.tutorialStep];
+  document.getElementById('tutStepInd').textContent=`${state.tutorialStep+1}/${TUTORIAL_STEPS.length}`;
+  document.getElementById('tutTitle').innerHTML=t(step.t_key);
+  document.getElementById('tutContent').innerHTML=t(step.c_key);
+  const btn=document.getElementById('tutBtn');
+  btn.textContent=step.b_key?t(step.b_key):(state.tutorialStep===TUTORIAL_STEPS.length-1?t('tut_eng'):t('tut_next'));
+  btn.onclick=nextTutorial;
+  document.querySelectorAll('.tutorial-highlight').forEach(el=>el.classList.remove('tutorial-highlight'));
+  const box=document.getElementById('tutorialBox');
+  if(step.target){const tEl=document.querySelector(step.target);if(tEl){tEl.classList.add('tutorial-highlight');const r=tEl.getBoundingClientRect();if(step.pos==='bottom'){box.style.top=(r.bottom+15)+'px';box.style.bottom='auto'}else if(step.pos==='top'){box.style.bottom=(window.innerHeight-r.top+15)+'px';box.style.top='auto'}else{box.style.top='50%';box.style.transform='translateY(-50%)'}}}
+  else{box.style.top='50%';box.style.transform='translateY(-50%)';box.style.bottom='auto'}
+}
+function nextTutorial(){state.tutorialStep++;if(state.tutorialStep>=TUTORIAL_STEPS.length){state.tutorialStep=-1;saveGame(true)}renderTutorialStep()}
+function endTutorial(){document.getElementById('tutorialOverlay').classList.remove('active');document.querySelectorAll('.tutorial-highlight').forEach(el=>el.classList.remove('tutorial-highlight'))}
+
+function saveGame(silent){
+  try{state.lastSave=Date.now();state.lang=currentLang;localStorage.setItem("cryptoCoreSave",JSON.stringify(state));if(!silent)toast(t('save_success'))}catch(e){toast(t('save_fail'))}
+}
+function loadGame(){
+  try{
+    const s=localStorage.getItem("cryptoCoreSave");
+    if(s){
+      const loaded=JSON.parse(s);state={...state,...loaded};currentLang=state.lang||'zh';
+      if(!state.difficulty||isNaN(state.difficulty))state.difficulty=1.0;if(!state.clicks||isNaN(state.clicks))state.clicks=0;
+      if(state.tutorialStep===undefined)state.tutorialStep=-1;if(isNaN(state.coins))state.coins=0;if(isNaN(state.money))state.money=100;
+      if(isNaN(state.price))state.price=10;if(isNaN(state.priceBase))state.priceBase=10;if(isNaN(state.totalMined))state.totalMined=0;
+      if(!Array.isArray(state.priceHistory)||state.priceHistory.some(isNaN))state.priceHistory=[10];addLog(t('sys_restored'),"good");
+    }else{addLog(t('new_session'),"good");state.tutorialStep=0}
+  }catch(e){console.error(e)}
+}
+function resetGame(){if(!confirm(t('confirm_wipe')))return;localStorage.removeItem("cryptoCoreSave");location.reload()}
+
+loadGame();
+applyStaticI18n();
+renderFilter();
+render();
+renderLog();
+if(state.tutorialStep>=0)setTimeout(showTutorial,500);
+setInterval(tick,1000);
+window.addEventListener("resize",drawChart);
+document.getElementById("buyAmount").addEventListener("input",updatePreview);
+document.getElementById("sellAmount").addEventListener("input",updatePreview);
+
+if(state.ticks>0&&state.lastSave){
+  const off=Math.min(28800,Math.floor((Date.now()-state.lastSave)/1000));
+  if(off>60){const gained=calcCPS()*off;state.coins+=gained;state.totalMined+=gained;const timeStr=`${Math.floor(off/3600)}h${Math.floor((off%3600)/60)}m`;addLog(t('offline_mining',{time:timeStr,val:fmt(gained,4)}),"good")}
+}
+</script>
+</body>
+</html>
