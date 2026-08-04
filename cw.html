@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>拓麻歌子 - 电子宠物</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .device-frame {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 10px;
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+    .top-bar-title { font-size: 16px; font-weight: bold; opacity: 0.9; }
+    .top-bar-btns { display: flex; gap: 8px; }
+    .top-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      border-radius: 10px;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .top-btn:active { background: rgba(255,255,255,0.2); }
+    .screen-bg {
+      background: #87CEEB;
+      border-radius: 24px;
+      border: 6px solid #2d2d44;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 10px 40px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+      min-height: 320px;
+      max-height: 55vh;
+    }
+    .pet-container {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      transition: left 0.8s ease-in-out, transform 0.3s ease, opacity 0.5s ease;
+      z-index: 5;
+      cursor: pointer;
+    }
+    .pet-emoji {
+      font-size: 80px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+      animation: petBreathe 2s ease-in-out infinite;
+      user-select: none;
+      display: inline-block;
+      transition: filter 0.5s ease, transform 0.3s ease;
+    }
+    .pet-name {
+      font-size: 14px;
+      color: #333;
+      margin-top: 4px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.7);
+      padding: 2px 12px;
+      border-radius: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .pet-name:active { transform: scale(0.95); }
+
+    @keyframes petBreathe { 0%,100%{transform:scale(1) translateY(0)} 50%{transform:scale(1.05) translateY(-3px)} }
+    @keyframes petWalkRight { 0%{transform:scaleX(1) translateY(0)} 25%{transform:scaleX(1) translateY(-5px)} 50%{transform:scaleX(1) translateY(0)} 75%{transform:scaleX(1) translateY(-5px)} 100%{transform:scaleX(1) translateY(0)} }
+    @keyframes petWalkLeft { 0%{transform:scaleX(-1) translateY(0)} 25%{transform:scaleX(-1) translateY(-5px)} 50%{transform:scaleX(-1) translateY(0)} 75%{transform:scaleX(-1) translateY(-5px)} 100%{transform:scaleX(-1) translateY(0)} }
+    @keyframes petSleep { 0%,100%{opacity:0.6;transform:scale(0.95)} 50%{opacity:0.3;transform:scale(0.9)} }
+    @keyframes petEat { 0%{transform:scale(1) rotate(0)} 25%{transform:scale(1.2) rotate(-5deg)} 50%{transform:scale(1.1) rotate(5deg)} 75%{transform:scale(1.15) rotate(-3deg)} 100%{transform:scale(1) rotate(0)} }
+    @keyframes petEvolve { 0%{transform:scale(1) rotate(0);filter:brightness(1)} 25%{transform:scale(1.3) rotate(10deg);filter:brightness(2)} 50%{transform:scale(0.8) rotate(-10deg);filter:brightness(0.5)} 75%{transform:scale(1.2) rotate(5deg);filter:brightness(1.5)} 100%{transform:scale(1) rotate(0);filter:brightness(1)} }
+    @keyframes petSad { 0%,100%{transform:scale(1) rotate(0)} 25%{transform:scale(0.95) rotate(-3deg)} 75%{transform:scale(0.95) rotate(3deg)} }
+    @keyframes petSick { 0%,100%{transform:translateX(0) rotate(0)} 20%{transform:translateX(-3px) rotate(-2deg)} 40%{transform:translateX(3px) rotate(2deg)} 60%{transform:translateX(-2px) rotate(-1deg)} 80%{transform:translateX(2px) rotate(1deg)} }
+    @keyframes petAngry { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+    @keyframes petHappy { 0%{transform:translateY(0) scale(1)} 50%{transform:translateY(-15px) scale(1.1)} 100%{transform:translateY(0) scale(1)} }
+    @keyframes petRunaway { 0%{transform:translateX(0) scale(1);opacity:1} 30%{transform:translateX(20px) scale(1.1);opacity:1} 100%{transform:translateX(200px) scale(0.5);opacity:0} }
+    @keyframes petReturn { 0%{transform:translateX(-200px) scale(0.5);opacity:0} 70%{transform:translateX(10px) scale(1.1);opacity:1} 100%{transform:translateX(0) scale(1);opacity:1} }
+    @keyframes floatHeart { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-60px) scale(1.5);opacity:0} }
+    @keyframes floatZzz { 0%{transform:translateY(0) scale(1);opacity:1} 100%{transform:translateY(-40px) scale(0.8);opacity:0} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    @keyframes cloudMove { 0%{transform:translateX(-100px)} 100%{transform:translateX(420px)} }
+    @keyframes floatMoon { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes popIn { 0%{transform:translate(-50%,-50%) scale(0)} 80%{transform:translate(-50%,-50%) scale(1.1)} 100%{transform:translate(-50%,-50%) scale(1)} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes poopAppear { 0%{transform:scale(0)} 80%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+    .status-bars {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      z-index: 4;
+    }
+    .bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 1px; flex: 1; min-width: 52px; }
+    .bar-label { font-size: 9px; color: #444; font-weight: bold; white-space: nowrap; }
+    .bar-track { width: 100%; max-width: 60px; height: 8px; background: rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .bar-hunger { background: #ff6b6b; }
+    .bar-happy { background: #ffd93d; }
+    .bar-energy { background: #6bcb77; }
+    .bar-health { background: #4d96ff; }
+    .bar-discipline { background: #a855f7; }
+    .stage-badge {
+      position: absolute;
+      top: 58px;
+      right: 8px;
+      background: rgba(255,255,255,0.85);
+      color: #333;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 4;
+    }
+    .age-display {
+      position: absolute;
+      top: 82px;
+      right: 8px;
+      background: rgba(255,255,255,0.7);
+      color: #555;
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-size: 10px;
+      z-index: 4;
+    }
+    .clouds { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+    .cloud {
+      position: absolute;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50px;
+      animation: cloudMove linear infinite;
+    }
+    .ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      background: linear-gradient(180deg, #90EE90 0%, #228B22 100%);
+      border-radius: 0 0 18px 18px;
+      z-index: 2;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+    .btn:active { transform: scale(0.9); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .btn-feed { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); color: #fff; }
+    .btn-play { background: linear-gradient(135deg, #ffd93d, #f0c420); color: #333; }
+    .btn-sleep { background: linear-gradient(135deg, #6bcb77, #5ab868); color: #fff; }
+    .btn-clean { background: linear-gradient(135deg, #4d96ff, #3a85e8); color: #fff; }
+    .btn-discipline { background: linear-gradient(135deg, #a855f7, #9333ea); color: #fff; }
+    .btn-label { font-size: 10px; margin-top: 3px; color: #ccc; text-align: center; }
+    .btn-wrap { display: flex; flex-direction: column; align-items: center; }
+    .log-area {
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      padding: 8px 12px;
+      margin-top: 10px;
+      max-height: 70px;
+      overflow-y: auto;
+      font-size: 12px;
+      color: #ddd;
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+    .log-area::-webkit-scrollbar { width: 3px; }
+    .log-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+    .log-entry { animation: fadeIn 0.3s ease; }
+    .poop { position: absolute; font-size: 20px; animation: poopAppear 0.3s ease; z-index: 3; }
+    .heart-effect, .zzz-effect { position: absolute; pointer-events: none; font-size: 20px; z-index: 10; }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      border-radius: 18px;
+      text-align: center;
+      padding: 20px;
+    }
+    .overlay h2 { font-size: 20px; margin-bottom: 8px; }
+    .overlay p { font-size: 14px; margin-bottom: 16px; opacity: 0.8; white-space: pre-line; }
+    .overlay-btn {
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      touch-action: manipulation;
+      margin: 4px;
+    }
+    .overlay-btn:active { transform: scale(0.95); }
+    .overlay-btn.danger { background: #ff6b6b; color: #fff; }
+    .sleep-overlay { background: rgba(0,0,10,0.7); }
+    .sleep-overlay .moon { font-size: 60px; margin-bottom: 12px; animation: floatMoon 3s ease-in-out infinite; }
+    .notification {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.95);
+      color: #333;
+      padding: 10px 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: bold;
+      z-index: 15;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      animation: popIn 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .stats-detail {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #555;
+      background: rgba(255,255,255,0.5);
+      padding: 1px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 4;
+    }
+    .stage-info {
+      position: absolute;
+      top: 58px;
+      left: 8px;
+      background: rgba(255,255,255,0.7);
+      color: #444;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 10px;
+      z-index: 4;
+      max-width: 55%;
+    }
+    .hidden { display: none !important; }
+    .consequence-tag {
+      position: absolute;
+      top: 106px;
+      right: 8px;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: bold;
+      z-index: 4;
+      animation: fadeIn 0.5s ease;
+    }
+    .tag-danger { background: rgba(255,100,100,0.85); color: #fff; }
+    .tag-warning { background: rgba(255,180,50,0.85); color: #333; }
+    .tag-info { background: rgba(100,180,255,0.85); color: #fff; }
+    .name-input {
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 2px solid #ccc;
+      font-size: 16px;
+      text-align: center;
+      width: 180px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .name-input:focus { border-color: #4d96ff; }
+    .save-indicator {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.4);
+      color: #8f8;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 10px;
+      z-index: 4;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .save-indicator.show { opacity: 1; }
+    .draw-egg {
+      font-size: 80px;
+      animation: petHatch 1s ease infinite;
+      cursor: pointer;
+      user-select: none;
+    }
+    @keyframes petHatch { 0%{transform:scale(1)} 30%{transform:scale(1.1) rotate(5deg)} 60%{transform:scale(0.9) rotate(-5deg)} 80%{transform:scale(1.05)} 100%{transform:scale(1)} }
+    .draw-hint { font-size: 13px; opacity: 0.8; margin-top: 8px; }
+    .rarity-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+    .rarity-common { background: rgba(150,150,150,0.3); color: #ccc; }
+    .rarity-hidden { background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,100,50,0.3)); color: #ffd700; border: 1px solid rgba(255,215,0,0.5); }
+  </style>
+</head>
+<body>
+  <div class="device-frame">
+    <div class="top-bar">
+      <div class="top-bar-title">🎮 拓麻歌子</div>
+      <div class="top-bar-btns">
+        <button class="top-btn" id="btnSave">💾 存档</button>
+        <button class="top-btn" id="btnReset">🔄 重置</button>
+      </div>
+    </div>
+    <div class="screen-bg" id="screen">
+      <div class="clouds" id="clouds"></div>
+      <div class="ground"></div>
+      <div class="save-indicator" id="saveIndicator">💾 已自动存档</div>
+
+      <div class="status-bars" id="statusBars"></div>
+      <div class="stage-badge" id="stageBadge">🥚 蛋</div>
+      <div class="age-display" id="ageDisplay">年龄: 0天</div>
+      <div class="stage-info" id="stageInfo">一颗神秘的蛋，正在孕育生命...</div>
+      <div class="consequence-tag hidden" id="consequenceTag"></div>
+
+      <div class="pet-container" id="petContainer">
+        <div class="pet-emoji" id="petEmoji">🥚</div>
+        <div class="pet-name" id="petName">点击命名</div>
+      </div>
+
+      <div class="stats-detail" id="statsDetail">心情: 平静</div>
+
+      <div id="overlay" class="overlay hidden">
+        <div class="moon" id="overlayIcon">🌙</div>
+        <h2 id="overlayTitle">标题</h2>
+        <div id="overlayContent"></div>
+        <p id="overlayText">内容</p>
+        <div id="overlayButtons"></div>
+      </div>
+
+      <div id="notification" class="notification hidden"></div>
+    </div>
+
+    <div class="controls">
+      <div class="btn-wrap">
+        <button class="btn btn-feed" id="btnFeed">🍖</button>
+        <div class="btn-label">喂食</div>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn btn-play" id="btnPlay">🎾</button>
+        <div class="btn-label">玩耍</div>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn btn-sleep" id="btnSleep">💤</button>
+        <div class="btn-label">睡觉</div>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn btn-clean" id="btnClean">🧹</button>
+        <div class="btn-label">清洁</div>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn btn-discipline" id="btnDiscipline">📢</button>
+        <div class="btn-label">管教</div>
+      </div>
+    </div>
+
+    <div class="log-area" id="logArea">
+      <div class="log-entry">🎮 欢迎来到拓麻歌子！</div>
+    </div>
+  </div>
+
+  <script>
+
+    // ===== 宠物种类定义（随机抽取） =====
+    // 熊猫为隐藏款，概率5%；其他各19%
+    const PET_TYPES = [
+      {
+        id: 'chick', name: '小鸡', rarity: 'common',
+        desc: '成长速度快，容易饿，需要频繁喂食',
+        emojis: ['🥚','🐤','🐥','🐔','🦃'],
+        modifiers: { hungerDecay: 1.3, happyDecay: 1.0, energyDecay: 1.0, healthDecay: 1.0, poopChance: 1.0, growthSpeed: 0.85 }
+      },
+      {
+        id: 'cat', name: '小猫', rarity: 'common',
+        desc: '性格均衡，容易照顾，适合新手',
+        emojis: ['🥚','🐱','😺','😸','🐯'],
+        modifiers: { hungerDecay: 1.0, happyDecay: 1.0, energyDecay: 1.0, healthDecay: 1.0, poopChance: 1.0, growthSpeed: 1.0 }
+      },
+      {
+        id: 'horse', name: '小马', rarity: 'common',
+        desc: '精力旺盛，需要多陪伴玩耍',
+        emojis: ['🥚','🐴','🦄','🐎','🦓'],
+        modifiers: { hungerDecay: 1.1, happyDecay: 1.2, energyDecay: 0.8, healthDecay: 0.9, poopChance: 1.1, growthSpeed: 1.0 }
+      },
+      {
+        id: 'monkey', name: '小猴', rarity: 'common',
+        desc: '活泼调皮，纪律很难维持',
+        emojis: ['🥚','🐵','🐒','🦍','🦧'],
+        modifiers: { hungerDecay: 1.0, happyDecay: 0.9, energyDecay: 1.1, healthDecay: 1.0, poopChance: 0.9, growthSpeed: 0.9 }
+      },
+      {
+        id: 'pig', name: '小猪', rarity: 'common',
+        desc: '容易吃撑，便便特别多',
+        emojis: ['🥚','🐷','🐽','🐗','🦛'],
+        modifiers: { hungerDecay: 0.8, happyDecay: 1.0, energyDecay: 1.0, healthDecay: 1.1, poopChance: 1.4, growthSpeed: 1.1 }
+      },
+      {
+        id: 'panda', name: '熊猫', rarity: 'hidden',
+        desc: '【隐藏款】传说中的珍稀宠物，各项优秀但成长缓慢',
+        emojis: ['🥚','🐼','🐻','🐻‍❄️','👑'],
+        modifiers: { hungerDecay: 0.7, happyDecay: 0.7, energyDecay: 0.7, healthDecay: 0.6, poopChance: 0.7, growthSpeed: 1.3 }
+      }
+    ];
+
+    const STAGE_CONFIG = [
+      { hungerDecay: 0, happyDecay: 0, energyDecay: 0, healthDecay: 0, poopChance: 0, ticksPerDay: 30, desc: "蛋正在孕育生命，无需照顾" },
+      { hungerDecay: 2.5, happyDecay: 2.0, energyDecay: 1.5, healthDecay: 0.5, poopChance: 0.10, ticksPerDay: 18, desc: "幼年期：需求旺盛，需要悉心照料" },
+      { hungerDecay: 1.8, happyDecay: 1.4, energyDecay: 1.0, healthDecay: 0.3, poopChance: 0.07, ticksPerDay: 20, desc: "成长期：活泼好动，注意陪伴" },
+      { hungerDecay: 1.2, happyDecay: 0.9, energyDecay: 0.6, healthDecay: 0.2, poopChance: 0.04, ticksPerDay: 24, desc: "成熟期：稳重可靠，容易照顾" },
+      { hungerDecay: 0.7, happyDecay: 0.5, energyDecay: 0.3, healthDecay: 0.1, poopChance: 0.02, ticksPerDay: 30, desc: "完全体：传说中的存在，长寿且稳定" }
+    ];
+
+    const CONFIG = {
+      TICK_RATE: 3000,
+      MAX_STAT: 100,
+      SLEEP_DURATION: 15000,
+      SLEEP_REGEN: 25,
+      FEED_HUNGER: 25,
+      FEED_HEALTH: 3,
+      FEED_HAPPY_PENALTY: 3,
+      FEED_ENERGY: 2,
+      PLAY_HAPPY: 20,
+      PLAY_ENERGY_COST: 12,
+      PLAY_HUNGER_COST: 5,
+      PLAY_HEALTH: 1,
+      CLEAN_HEALTH: 5,
+      CLEAN_HAPPY: 5,
+      CLEAN_ENERGY_COST: 3,
+      DISCIPLINE_DISC: 15,
+      DISCIPLINE_HAPPY_PENALTY: 8,
+      DISCIPLINE_ENERGY_COST: 2,
+      PET_HAPPY: 5,
+      PET_DISCIPLINE: 1,
+      RUNAWAY_DISC_THRESHOLD: 15,
+      RUNAWAY_CHANCE: 0.03,
+      SICK_POOP_THRESHOLD: 3,
+      SICK_CHANCE_PER_POOP: 0.04,
+      SICK_HEALTH_PENALTY: 2,
+      STARVE_HEALTH_PENALTY: 3,
+      DEPRESSION_THRESHOLD: 10,
+      DEPRESSION_HAPPY_PENALTY: 2,
+      DISOBEY_DISC_THRESHOLD: 20,
+      DISOBEY_CHANCE: 0.25,
+      WALK_INTERVAL_MIN: 4000,
+      WALK_INTERVAL_MAX: 8000,
+      SAVE_KEY: 'tamagotchi_save_v3',
+      SAVE_INTERVAL: 5,
+    };
+
+    const STAGES = [
+      { name: "蛋", minAge: 0, desc: "一颗神秘的蛋" },
+      { name: "幼年期", minAge: 3, desc: "刚孵化的小生命" },
+      { name: "成长期", minAge: 8, desc: "活泼好动的成长期" },
+      { name: "成熟期", minAge: 15, desc: "稳重可靠的成熟期" },
+      { name: "完全体", minAge: 25, desc: "传说中的完全体" }
+    ];
+
+    const MESSAGES = {
+      hungry: ["肚子咕咕叫...", "好饿啊...", "想吃好吃的！", "饿得走不动了..."],
+      sad: ["有点无聊...", "想玩！", "好孤单...", "陪陪我嘛..."],
+      tired: ["好困...", "想睡觉...", "眼皮好重...", "ZZZ..."],
+      sick: ["不舒服...", "头好晕...", "生病了...", "需要照顾..."],
+      poop: ["这里好脏...", "有味道...", "该打扫了..."],
+      evolve: ["我感觉在变化！", "身体在发光！", "要进化了！", "好神奇的感觉！"],
+      dead: ["宠物回到了天上...", "它永远睡去了...", "谢谢你陪伴它..."],
+      happy: ["好开心！", "最喜欢你了！", "耶！", "太棒了！"],
+      sleep: ["晚安...", "做个好梦...", "Zzz...", "明天见..."],
+      runaway: ["我走了！", "不要你了！", "哼！", "再见！"],
+      return: ["我回来了...", "想你了...", "对不起...", "还是家里好..."],
+      disobey: ["不要！", "不听你的！", "哼！", "才不要呢！"],
+      sickEvent: ["咳咳...", "好难受...", "发烧了...", "生病了..."],
+      tooFull: ["吃太饱了...", "不想吃了...", "好撑...", "吃不下了..."],
+      playTired: ["太累了...", "不想动...", "没力气玩...", "歇会儿..."]
+    };
+
+    function createNewGame() {
+      return {
+        started: false, paused: false, sleeping: false, dead: false,
+        name: "", petTypeIndex: -1, age: 0, ageTicks: 0,
+        hunger: 80, happy: 80, energy: 80, health: 100, discipline: 50,
+        poops: [], stage: 0, lastAction: "", mood: "平静",
+        isRunaway: false, walkDirection: 1, walkTimer: null,
+        isSick: false, sickTimer: 0, disobeyCount: 0,
+        petCooldown: 0, totalPlayTime: 0, lastSaveTick: 0,
+      };
+    }
+
+    var game = createNewGame();
+    var gameInterval = null;
+    var sleepTimeout = null;
+    var overlayCallback = null;
+    var walkInterval = null;
+    var saveTickCounter = 0;
+
+    var $ = function(id) { return document.getElementById(id); };
+
+    function getPetType() {
+      if (game.petTypeIndex < 0 || game.petTypeIndex >= PET_TYPES.length) return PET_TYPES[0];
+      return PET_TYPES[game.petTypeIndex];
+    }
+
+    function getMod(key) {
+      return getPetType().modifiers[key] || 1.0;
+    }
+
+    function getCurrentStageConfig() {
+      return STAGE_CONFIG[game.stage] || STAGE_CONFIG[0];
+    }
+
+    function getStageEmoji(stageIdx) {
+      var pt = getPetType();
+      return pt.emojis[stageIdx] || pt.emojis[pt.emojis.length - 1];
+    }
+
+    // ===== 随机抽取宠物 =====
+    function drawPetType() {
+      var r = Math.random();
+      if (r < 0.05) return 5; // 熊猫 5%
+      // 其他5种各19%
+      var commonR = (r - 0.05) / 0.95;
+      return Math.min(4, Math.floor(commonR * 5));
+    }
+
+    // ===== 存档系统 =====
+    function saveGame() {
+      try {
+        localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify(game));
+        showSaveIndicator();
+      } catch (e) { console.error('存档失败:', e); }
+    }
+
+    function loadGame() {
+      try {
+        var data = localStorage.getItem(CONFIG.SAVE_KEY);
+        if (!data) return false;
+        var loaded = JSON.parse(data);
+        var ng = createNewGame();
+        Object.keys(loaded).forEach(function(k) { if (k in ng) ng[k] = loaded[k]; });
+        game = ng;
+        return true;
+      } catch (e) { console.error('读档失败:', e); return false; }
+    }
+
+    function clearSave() {
+      try { localStorage.removeItem(CONFIG.SAVE_KEY); } catch (e) {}
+    }
+
+    function showSaveIndicator() {
+      var ind = $('saveIndicator');
+      ind.classList.add('show');
+      setTimeout(function() { ind.classList.remove('show'); }, 1500);
+    }
+
+    // ===== 初始化 =====
+    function init() {
+      createClouds();
+      bindEvents();
+      var hasSave = loadGame();
+      if (hasSave && game.started && !game.dead) {
+        addLog('📂 读取存档成功！欢迎回来，' + (game.name || '小伙伴') + '！');
+        restoreGame();
+      } else if (hasSave && game.dead) {
+        addLog('💀 上一次的宠物已离世...');
+        showDeadOverlay();
+      } else {
+        showDrawScreen();
+      }
+    }
+
+    function restoreGame() {
+      $('petName').textContent = game.name || '未命名';
+      document.querySelectorAll('.poop').forEach(function(p) { p.remove(); });
+      game.poops.forEach(function(p) { renderPoop(p.x, p.y); });
+      startGameLoop();
+      startWalkLoop();
+      updateUI();
+      updatePetAnimation();
+      if (game.sleeping) {
+        $('overlay').classList.remove('hidden');
+        $('overlay').classList.add('sleep-overlay');
+        $('overlayIcon').textContent = '🌙';
+        $('overlayTitle').textContent = '晚安...';
+        $('overlayText').textContent = game.name + '正在睡觉，休息中...\n睡觉可以恢复精力和健康\n但也会消耗少量饱食';
+        $('overlayContent').innerHTML = '';
+        $('overlayButtons').innerHTML = '<button class="overlay-btn" id="wakeBtn">叫醒它</button>';
+        $('wakeBtn').addEventListener('click', wakeUp);
+      }
+    }
+
+    function showDeadOverlay() {
+      showOverlay('👻', '宠物已离世', '上一次的宠物陪伴了你 ' + game.age + ' 天。\n要重新开始新的旅程吗？', '开始新游戏', function() {
+        clearSave();
+        resetGameInternal();
+        showDrawScreen();
+      });
+    }
+
+    // ===== 抽蛋界面 =====
+    function showDrawScreen() {
+      $('overlayIcon').textContent = '🥚';
+      $('overlayTitle').textContent = '抽取宠物蛋';
+      $('overlayText').textContent = '点击蛋进行抽取！\n有机会抽到隐藏款熊猫哦~\n每次重置都会重新抽取。';
+      $('overlayContent').innerHTML = '<div class="draw-egg" id="drawEgg">🥚</div><div class="draw-hint">点击蛋抽取你的宠物！</div>';
+      $('overlayButtons').innerHTML = '';
+      $('overlay').classList.remove('hidden');
+      $('overlay').classList.remove('sleep-overlay');
+      setTimeout(function() {
+        var egg = $('drawEgg');
+        if (egg) egg.addEventListener('click', doDraw);
+      }, 50);
+    }
+
+    function doDraw() {
+      var egg = $('drawEgg');
+      if (egg) {
+        egg.style.animation = 'petEvolve 0.8s ease';
+        setTimeout(function() { egg.style.animation = 'petHatch 1s ease infinite'; }, 800);
+      }
+
+      // 模拟抽取过程
+      var steps = 0;
+      var interval = setInterval(function() {
+        steps++;
+        var tempIdx = Math.floor(Math.random() * 6);
+        $('overlayIcon').textContent = PET_TYPES[tempIdx].emojis[1];
+        $('overlayTitle').textContent = '抽取中...';
+        if (steps >= 6) {
+          clearInterval(interval);
+          var finalIdx = drawPetType();
+          game.petTypeIndex = finalIdx;
+          var pt = getPetType();
+          $('overlayIcon').textContent = pt.emojis[1];
+          $('overlayTitle').textContent = '恭喜！';
+          $('overlayText').textContent = '你抽到了 ' + pt.name + '！\n' + pt.desc;
+          $('overlayContent').innerHTML = '<div style="font-size:60px;margin:10px 0;">' + pt.emojis[1] + '</div>' +
+            '<div class="rarity-tag ' + (pt.rarity === 'hidden' ? 'rarity-hidden' : 'rarity-common') + '">' +
+            (pt.rarity === 'hidden' ? '⭐ 隐藏款 ⭐' : '普通') + '</div>' +
+            '<div style="font-size:12px;opacity:0.7;margin-top:6px;">成长路线: ' + pt.emojis.join(' → ') + '</div>';
+          $('overlayButtons').innerHTML = '<button class="overlay-btn" id="nextBtn">继续</button>';
+          $('nextBtn').addEventListener('click', showNameInput);
+          addLog('🎲 抽取结果: ' + pt.name + (pt.rarity === 'hidden' ? ' 【隐藏款】' : ''));
+        }
+      }, 300);
+    }
+
+    function showNameInput() {
+      var pt = getPetType();
+      var defaultName = pt.name;
+      $('overlayIcon').textContent = pt.emojis[1];
+      $('overlayTitle').textContent = '命名你的' + pt.name;
+      $('overlayText').textContent = '给你的宠物取个名字吧！\n名字可以随时点击宠物修改。';
+      $('overlayContent').innerHTML = '<input type="text" class="name-input" id="nameInput" placeholder="输入名字" maxlength="6" value="' + defaultName + '">';
+      $('overlayButtons').innerHTML = '<button class="overlay-btn" id="startBtn">开始孵化</button>';
+      $('startBtn').addEventListener('click', startGame);
+      setTimeout(function() { var inp = $('nameInput'); if (inp) inp.focus(); }, 100);
+    }
+
+    function startGame() {
+      var input = $('nameInput');
+      var name = input ? input.value.trim() : '';
+      var pt = getPetType();
+      game.name = name || pt.name;
+      game.started = true;
+      hideOverlay();
+      $('petName').textContent = game.name;
+      startGameLoop();
+      startWalkLoop();
+      addLog('🥚 ' + game.name + '的蛋开始晃动了...');
+      setTimeout(function() {
+        addLog('💥 蛋裂开了！');
+        evolveToStage(1);
+      }, 4000);
+      saveGame();
+    }
+
+    function createClouds() {
+      var container = $('clouds');
+      for (var i = 0; i < 3; i++) {
+        var cloud = document.createElement('div');
+        cloud.className = 'cloud';
+        cloud.style.cssText = 'width:' + (60+i*20) + 'px;height:' + (30+i*10) + 'px;top:' + (10+i*40) + 'px;animation-duration:' + (15+i*5) + 's;animation-delay:' + (i*5) + 's;opacity:' + (0.4+i*0.2);
+        container.appendChild(cloud);
+      }
+    }
+
+    function bindEvents() {
+      $('btnFeed').addEventListener('click', actionFeed);
+      $('btnPlay').addEventListener('click', actionPlay);
+      $('btnSleep').addEventListener('click', actionSleep);
+      $('btnClean').addEventListener('click', actionClean);
+      $('btnDiscipline').addEventListener('click', actionDiscipline);
+      $('petName').addEventListener('click', renamePet);
+      $('petContainer').addEventListener('click', petTouch);
+      $('btnSave').addEventListener('click', manualSave);
+      $('btnReset').addEventListener('click', confirmReset);
+    }
+
+    function manualSave() {
+      saveGame();
+      addLog('💾 手动存档成功！');
+      showNotification('存档已保存');
+    }
+
+    function confirmReset() {
+      if (game.sleeping) { addLog('💤 宠物在睡觉，等它醒了再重置吧'); return; }
+      showOverlay('⚠️', '确认重置？', '当前进度将完全清除，\n你会重新抽取一只新的宠物！\n确定要重新开始吗？', '确认重置', function() {
+        clearSave();
+        resetGameInternal();
+        showDrawScreen();
+      });
+      var cancelBtn = document.createElement('button');
+      cancelBtn.className = 'overlay-btn';
+      cancelBtn.textContent = '取消';
+      cancelBtn.addEventListener('click', function() {
+        if (game.started && !game.dead) hideOverlay();
+        else showDeadOverlay();
+      });
+      $('overlayButtons').appendChild(cancelBtn);
+    }
+
+    function petTouch() {
+      if (!game.started || game.dead || game.sleeping || game.isRunaway || game.stage === 0) return;
+      if (game.petCooldown > 0) { addLog('👋 刚摸过了，等一会儿再摸吧~'); return; }
+      game.happy = Math.min(CONFIG.MAX_STAT, game.happy + CONFIG.PET_HAPPY);
+      game.discipline = Math.min(CONFIG.MAX_STAT, game.discipline + CONFIG.PET_DISCIPLINE);
+      game.petCooldown = 3;
+      spawnEffect('❤️');
+      addLog('💕 你摸了摸' + game.name + '，心情+' + CONFIG.PET_HAPPY + '，纪律+' + CONFIG.PET_DISCIPLINE);
+      saveGame();
+      updateUI();
+    }
+
+    function renamePet() {
+      if (!game.started || game.dead) return;
+      var newName = prompt('给宠物取个新名字（最多6个字）：', game.name);
+      if (newName && newName.trim()) {
+        var oldName = game.name;
+        game.name = newName.trim().slice(0, 6);
+        $('petName').textContent = game.name;
+        addLog('✏️ ' + oldName + ' 改名为 ' + game.name + '！');
+        saveGame();
+        updateUI();
+      }
+    }
+
+    function hideOverlay() {
+      $('overlay').classList.add('hidden');
+      $('overlay').classList.remove('sleep-overlay');
+      $('overlayContent').innerHTML = '';
+      $('overlayButtons').innerHTML = '';
+    }
+
+    function showOverlay(icon, title, text, btnText, callback) {
+      $('overlayIcon').textContent = icon;
+      $('overlayTitle').textContent = title;
+      $('overlayText').textContent = text;
+      $('overlayContent').innerHTML = '';
+      $('overlayButtons').innerHTML = '<button class="overlay-btn" id="dynOverlayBtn">' + btnText + '</button>';
+      $('dynOverlayBtn').addEventListener('click', function() { if (callback) callback(); });
+      $('overlay').classList.remove('hidden');
+      $('overlay').classList.remove('sleep-overlay');
+      overlayCallback = callback;
+    }
+
+    // ===== 行走系统 =====
+    function startWalkLoop() {
+      if (walkInterval) clearTimeout(walkInterval);
+      doWalk();
+    }
+
+    function doWalk() {
+      if (!game.started || game.dead || game.sleeping || game.isRunaway || game.stage === 0) {
+        scheduleNextWalk(); return;
+      }
+      var container = $('petContainer');
+      var screenWidth = $('screen').offsetWidth;
+      var petWidth = 80;
+      var margin = 30;
+      var maxLeft = screenWidth - petWidth - margin;
+      var minLeft = margin;
+      var moveRange = 60;
+      if (game.happy < 30) moveRange = 20;
+      if (game.happy > 70) moveRange = 100;
+      var currentLeft = parseFloat(container.style.left) || (screenWidth / 2);
+      var targetLeft = currentLeft + (game.walkDirection * moveRange * (0.5 + Math.random()));
+      if (targetLeft > maxLeft) { targetLeft = maxLeft; game.walkDirection = -1; }
+      if (targetLeft < minLeft) { targetLeft = minLeft; game.walkDirection = 1; }
+      container.style.left = targetLeft + 'px';
+      container.style.transform = game.walkDirection === 1 ? 'translateX(-50%) scaleX(1)' : 'translateX(-50%) scaleX(-1)';
+      var pet = $('petEmoji');
+      pet.style.animation = game.walkDirection === 1 ? 'petWalkRight 0.6s ease infinite' : 'petWalkLeft 0.6s ease infinite';
+      setTimeout(function() {
+        if (!game.sleeping && !game.dead && !game.isRunaway) {
+          pet.style.animation = getIdleAnimation();
+          container.style.transform = 'translateX(-50%)';
+        }
+      }, 800);
+      scheduleNextWalk();
+    }
+
+    function scheduleNextWalk() {
+      if (walkInterval) clearTimeout(walkInterval);
+      var delay = CONFIG.WALK_INTERVAL_MIN + Math.random() * (CONFIG.WALK_INTERVAL_MAX - CONFIG.WALK_INTERVAL_MIN);
+      walkInterval = setTimeout(doWalk, delay);
+    }
+
+    function getIdleAnimation() {
+      if (game.sleeping) return 'petSleep 2s ease-in-out infinite';
+      if (game.isSick) return 'petSick 1s ease-in-out infinite';
+      if (game.health < 30) return 'petSick 1.5s ease-in-out infinite';
+      if (game.hunger < 20) return 'petSad 2s ease-in-out infinite';
+      if (game.happy < 20) return 'petSad 2s ease-in-out infinite';
+      if (game.happy > 80 && game.hunger > 70) return 'petHappy 1.5s ease-in-out infinite';
+      if (game.discipline < 15) return 'petAngry 1s ease-in-out infinite';
+      return 'petBreathe 2s ease-in-out infinite';
+    }
+
+    // ===== 游戏循环 =====
+    function startGameLoop() {
+      if (gameInterval) clearInterval(gameInterval);
+      gameInterval = setInterval(gameTick, CONFIG.TICK_RATE);
+    }
+
+    // 反对应关系计算
+    // 饱食 ↔ 便便：饱食越高，便便概率越高
+    function getPoopChanceModifier() {
+      // 饱食0~100映射到便便概率0.2~1.8
+      return 0.2 + (game.hunger / CONFIG.MAX_STAT) * 1.6;
+    }
+
+    // 心情 ↔ 纪律：心情越高，纪律自然下降越快
+    function getDisciplineDecayModifier() {
+      // 心情0~100映射到纪律衰减0.2~1.5
+      return 0.2 + (game.happy / CONFIG.MAX_STAT) * 1.3;
+    }
+
+    // 纪律 ↔ 心情：纪律越高，心情自然下降越快
+    function getHappyDecayModifier() {
+      // 纪律0~100映射到心情衰减0.2~1.5
+      return 0.2 + (game.discipline / CONFIG.MAX_STAT) * 1.3;
+    }
+
+    function gameTick() {
+      if (!game.started || game.paused || game.dead) return;
+      game.totalPlayTime++;
+      saveTickCounter++;
+      if (game.petCooldown > 0) game.petCooldown--;
+      var sc = getCurrentStageConfig();
+
+      if (saveTickCounter >= CONFIG.SAVE_INTERVAL) {
+        saveTickCounter = 0;
+        saveGame();
+      }
+
+      if (game.isRunaway) {
+        game.ageTicks++;
+        var growthMod = getMod('growthSpeed');
+        if (game.ageTicks >= Math.round(sc.ticksPerDay * growthMod)) {
+          game.ageTicks = 0; game.age++;
+        }
+        if (Math.random() < 0.08) petReturn();
+        updateUI();
+        return;
+      }
+
+      if (game.sleeping) {
+        var sleepRegen = Math.round(CONFIG.SLEEP_REGEN * getMod('sleepRegen'));
+        game.energy = Math.min(CONFIG.MAX_STAT, game.energy + sleepRegen / 5);
+        game.health = Math.min(CONFIG.MAX_STAT, game.health + 1);
+        if (game.discipline < 20 && Math.random() < 0.05) {
+          game.happy = Math.max(0, game.happy - 3);
+          addLog('😰 ' + game.name + '做噩梦了...');
+        }
+        game.hunger = Math.max(0, game.hunger - 0.5);
+        updateUI();
+        return;
+      }
+
+      if (game.stage === 0) {
+        game.ageTicks++;
+        if (game.ageTicks >= sc.ticksPerDay) {
+          game.ageTicks = 0; game.age++;
+          addLog('📅 第 ' + game.age + ' 天了，蛋还在孕育中...');
+        }
+        updateUI();
+        return;
+      }
+
+      var growthMod = getMod('growthSpeed');
+      game.ageTicks++;
+      if (game.ageTicks >= Math.round(sc.ticksPerDay * growthMod)) {
+        game.ageTicks = 0; game.age++;
+        checkEvolution();
+        addLog('📅 第 ' + game.age + ' 天了！');
+      }
+
+      // 基础衰减（带宠物种类修正）
+      game.hunger = Math.max(0, game.hunger - sc.hungerDecay * getMod('hungerDecay'));
+      game.energy = Math.max(0, game.energy - sc.energyDecay * getMod('energyDecay'));
+
+      // 心情衰减：受纪律影响（反对应）
+      var happyDecay = sc.happyDecay * getMod('happyDecay') * getHappyDecayModifier();
+      game.happy = Math.max(0, game.happy - happyDecay);
+
+      // 纪律衰减：受心情影响（反对应）
+      var discDecay = 0.15 * getMod('disciplineDecay') * getDisciplineDecayModifier();
+      game.discipline = Math.max(0, game.discipline - discDecay);
+
+      // 生病状态持续扣健康
+      if (game.isSick) {
+        game.sickTimer++;
+        game.health = Math.max(0, game.health - CONFIG.SICK_HEALTH_PENALTY);
+        if (game.sickTimer > 5 && Math.random() < 0.3) {
+          game.isSick = false; game.sickTimer = 0;
+          addLog('💊 ' + game.name + '的病自己好了！');
+        }
+      }
+
+      // 饥饿后果
+      if (game.hunger <= 0) {
+        game.health = Math.max(0, game.health - CONFIG.STARVE_HEALTH_PENALTY);
+        if (Math.random() < 0.3) {
+          addLog('😵 ' + game.name + '饿得晕乎乎的...');
+          game.energy = Math.max(0, game.energy - 5);
+        }
+      }
+
+      // 心情抑郁
+      if (game.happy < CONFIG.DEPRESSION_THRESHOLD) {
+        game.happy = Math.max(0, game.happy - CONFIG.DEPRESSION_HAPPY_PENALTY);
+        if (Math.random() < 0.1) addLog('😢 ' + game.name + '看起来很抑郁...');
+      }
+
+      // 健康计算
+      var healthLoss = sc.healthDecay * getMod('healthDecay');
+      if (game.hunger < 20) healthLoss += sc.hungerDecay * getMod('hungerDecay') * 0.8;
+      if (game.happy < 20) healthLoss += sc.happyDecay * getMod('happyDecay') * 0.5;
+      if (game.energy < 10) healthLoss += sc.energyDecay * getMod('energyDecay') * 0.8;
+      if (game.poops.length > 0) healthLoss += game.poops.length * 1.5;
+      if (game.isSick) healthLoss += 1;
+      game.health = Math.max(0, game.health - healthLoss);
+
+      // 便便产生（反对应：饱食越高，便便概率越高）
+      var poopBase = sc.poopChance * getMod('poopChance');
+      var poopModifier = getPoopChanceModifier();
+      if (Math.random() < poopBase * poopModifier) {
+        spawnPoop();
+      }
+
+      // 卫生→生病
+      if (game.poops.length >= CONFIG.SICK_POOP_THRESHOLD && !game.isSick) {
+        var sickProb = game.poops.length * CONFIG.SICK_CHANCE_PER_POOP;
+        if (Math.random() < sickProb) {
+          game.isSick = true; game.sickTimer = 0;
+          addLog('🤒 环境太脏了，' + game.name + '生病了！快打扫并喂食恢复健康！');
+          showNotification(pickRandom(MESSAGES.sickEvent));
+        }
+      }
+
+      // 纪律→离家出走
+      if (game.discipline < CONFIG.RUNAWAY_DISC_THRESHOLD && !game.isRunaway && game.stage >= 2) {
+        if (Math.random() < CONFIG.RUNAWAY_CHANCE) { petRunaway(); return; }
+      }
+
+      // 纪律→不听话
+      if (game.discipline < CONFIG.DISOBEY_DISC_THRESHOLD) {
+        if (Math.random() < 0.05) {
+          addLog('😤 ' + game.name + pickRandom(MESSAGES.disobey));
+          game.disobeyCount++;
+        }
+      }
+
+      // 精力→强制睡眠
+      var hour = new Date().getHours();
+      if (game.energy < 5 && (hour >= 22 || hour <= 6)) {
+        addLog('😴 宠物太累了，自己睡着了...');
+        actionSleep();
+      }
+      if (game.energy <= 0 && !game.sleeping) {
+        addLog('😴 ' + game.name + '精疲力竭，倒头就睡！');
+        actionSleep();
+      }
+
+      updateMood();
+      if (Math.random() < 0.15) {
+        var msg = getRandomMessage();
+        if (msg) showNotification(msg);
+      }
+      if (game.health <= 0) { die(); return; }
+      updateUI();
+      updatePetAnimation();
+    }
+
+    function updateMood() {
+      if (game.isSick) game.mood = '生病';
+      else if (game.health < 30) game.mood = '虚弱';
+      else if (game.hunger < 20) game.mood = '饥饿';
+      else if (game.energy < 15) game.mood = '疲惫';
+      else if (game.happy < 20) game.mood = '难过';
+      else if (game.poops.length > 2) game.mood = '不舒服';
+      else if (game.discipline < 15) game.mood = '叛逆';
+      else if (game.happy > 80 && game.hunger > 70) game.mood = '开心';
+      else game.mood = '平静';
+    }
+
+    function getRandomMessage() {
+      if (game.isSick) return pickRandom(MESSAGES.sick);
+      if (game.health < 30) return pickRandom(MESSAGES.sick);
+      if (game.hunger < 25) return pickRandom(MESSAGES.hungry);
+      if (game.happy < 25) return pickRandom(MESSAGES.sad);
+      if (game.energy < 20) return pickRandom(MESSAGES.tired);
+      if (game.poops.length > 1) return pickRandom(MESSAGES.poop);
+      return null;
+    }
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function checkEvolution() {
+      for (var i = STAGES.length - 1; i > game.stage; i--) {
+        if (game.age >= STAGES[i].minAge) { evolveToStage(i); return; }
+      }
+    }
+
+    function evolveToStage(newStage) {
+      game.stage = newStage;
+      var pet = $('petEmoji');
+      pet.style.animation = 'petEvolve 1.5s ease';
+      setTimeout(function() { updatePetAnimation(); }, 1500);
+      game.hunger = Math.min(CONFIG.MAX_STAT, game.hunger + 20);
+      game.happy = Math.min(CONFIG.MAX_STAT, game.happy + 30);
+      game.health = Math.min(CONFIG.MAX_STAT, game.health + 10);
+      showNotification('✨ 进化成' + STAGES[newStage].name + '！');
+      addLog('🌟 ' + game.name + ' 进化成了 ' + STAGES[newStage].name + '！');
+      addLog('📊 ' + getCurrentStageConfig().desc);
+      saveGame();
+      updateUI();
+    }
+
+    function petRunaway() {
+      game.isRunaway = true;
+      var pet = $('petEmoji');
+      var container = $('petContainer');
+      pet.style.animation = 'petRunaway 1.5s ease forwards';
+      addLog('🏃 ' + game.name + pickRandom(MESSAGES.runaway));
+      addLog('⚠️ 纪律太低导致离家出走！提高纪律值才能让它回来！');
+      showNotification(game.name + '离家出走了！');
+      setTimeout(function() { container.style.opacity = '0'; }, 1500);
+      saveGame();
+    }
+
+    function petReturn() {
+      game.isRunaway = false;
+      var pet = $('petEmoji');
+      var container = $('petContainer');
+      container.style.opacity = '1';
+      container.style.left = '50%';
+      pet.style.animation = 'petReturn 1s ease forwards';
+      game.happy = Math.min(CONFIG.MAX_STAT, game.happy + 15);
+      game.discipline = Math.min(CONFIG.MAX_STAT, game.discipline + 10);
+      addLog('🏠 ' + game.name + pickRandom(MESSAGES.return));
+      showNotification(game.name + '回来了！');
+      setTimeout(function() { updatePetAnimation(); }, 1000);
+      saveGame();
+    }
+
+    // ===== 交互动作（带连锁影响） =====
+    function actionFeed() {
+      if (!canAct()) return;
+      if (game.sleeping) { addLog('💤 它在睡觉，别吵醒它...'); return; }
+      if (game.isRunaway) { addLog('🏃 ' + game.name + '不在家，无法喂食！'); return; }
+      if (game.isSick && Math.random() < 0.3) {
+        addLog('🤒 ' + game.name + '生病了，没有胃口...');
+        game.happy = Math.max(0, game.happy - 2);
+        updateUI(); return;
+      }
+      if (game.hunger > 90) {
+        addLog('🍖 ' + game.name + '吃太饱了，不想再吃！心情下降了');
+        game.happy = Math.max(0, game.happy - 5);
+        updateUI(); return;
+      }
+      var hungerGain = Math.round(CONFIG.FEED_HUNGER * getMod('feedHunger'));
+      game.hunger = Math.min(CONFIG.MAX_STAT, game.hunger + hungerGain);
+      game.health = Math.min(CONFIG.MAX_STAT, game.health + CONFIG.FEED_HEALTH);
+      game.energy = Math.min(CONFIG.MAX_STAT, game.energy + CONFIG.FEED_ENERGY);
+      game.happy = Math.max(0, game.happy - CONFIG.FEED_HAPPY_PENALTY);
+      game.discipline = Math.min(CONFIG.MAX_STAT, game.discipline + 1);
+      if (game.isSick && game.hunger > 50) {
+        game.isSick = false; game.sickTimer = 0;
+        addLog('💊 好好吃饭后，' + game.name + '的病好了！');
+      }
+      animatePet('petEat');
+      spawnEffect('❤️');
+      addLog('🍖 喂食了' + game.name + '，饱食+' + hungerGain + '，心情-3（吃太急）');
+      saveGame();
+      updateUI();
+    }
+
+    function actionPlay() {
+      if (!canAct()) return;
+      if (game.sleeping) { addLog('💤 它在睡觉呢...'); return; }
+      if (game.isRunaway) { addLog('🏃 ' + game.name + '不在家，无法玩耍！'); return; }
+      var energyCost = Math.round(CONFIG.PLAY_ENERGY_COST * getMod('playEnergyCost'));
+      if (game.energy < energyCost + 5) {
+        addLog('😫 它太累了，不想玩...');
+        game.happy = Math.max(0, game.happy - 3);
+        updateUI(); return;
+      }
+      if (game.isSick) { addLog('🤒 它生病了，没力气玩耍...'); return; }
+      if (game.discipline < CONFIG.DISOBEY_DISC_THRESHOLD && Math.random() < CONFIG.DISOBEY_CHANCE) {
+        addLog('😤 ' + game.name + pickRandom(MESSAGES.disobey));
+        game.happy = Math.max(0, game.happy - 5);
+        updateUI(); return;
+      }
+      var happyGain = Math.round(CONFIG.PLAY_HAPPY * getMod('playHappy'));
+      game.happy = Math.min(CONFIG.MAX_STAT, game.happy + happyGain);
+      game.energy = Math.max(0, game.energy - energyCost);
+      game.hunger = Math.max(0, game.hunger - CONFIG.PLAY_HUNGER_COST);
+      game.discipline = Math.min(CONFIG.MAX_STAT, game.discipline + 2);
+      game.health = Math.min(CONFIG.MAX_STAT, game.health + CONFIG.PLAY_HEALTH);
+      animatePet('petJump');
+      spawnEffect('🎵');
+      addLog('🎾 和' + game.name + '玩耍，心情+' + happyGain + '，精力-' + energyCost + '，饱食-' + CONFIG.PLAY_HUNGER_COST);
+      saveGame();
+      updateUI();
+    }
+
+    function actionSleep() {
+      if (!canAct()) return;
+      if (game.isRunaway) { addLog('🏃 ' + game.name + '不在家！'); return; }
+      if (game.sleeping) { wakeUp(); return; }
+      if (game.energy > 85) {
+        addLog('😳 ' + game.name + '精力满满，不想睡觉！');
+        game.happy = Math.max(0, game.happy - 2);
+        updateUI(); return;
+      }
+      game.sleeping = true;
+      $('overlay').classList.remove('hidden');
+      $('overlay').classList.add('sleep-overlay');
+      $('overlayIcon').textContent = '🌙';
+      $('overlayTitle').textContent = '晚安...';
+      $('overlayText').textContent = game.name + '正在睡觉，休息中...\n睡觉可以恢复精力和健康\n但也会消耗少量饱食';
+      $('overlayContent').innerHTML = '';
+      $('overlayButtons').innerHTML = '<button class="overlay-btn" id="wakeBtn">叫醒它</button>';
+      $('wakeBtn').addEventListener('click', wakeUp);
+      updatePetAnimation();
+      addLog('💤 ' + game.name + '睡着了...');
+      sleepTimeout = setTimeout(function() { if (game.sleeping) wakeUp(); }, CONFIG.SLEEP_DURATION);
+      updateUI();
+    }
+
+    function wakeUp() {
+      game.sleeping = false;
+      if (sleepTimeout) clearTimeout(sleepTimeout);
+      hideOverlay();
+      updatePetAnimation();
+      addLog('☀️ ' + game.name + '醒来了！精神满满！');
+      saveGame();
+      updateUI();
+    }
+
+    function actionClean() {
+      if (!canAct()) return;
+      if (game.sleeping) { addLog('💤 等它醒了再打扫吧...'); return; }
+      if (game.isRunaway) { addLog('🏃 ' + game.name + '不在家！'); return; }
+      if (game.poops.length === 0) { addLog('🧹 环境很干净，不需要打扫。'); return; }
+      var healthGain = Math.round(CONFIG.CLEAN_HEALTH * getMod('cleanHealth'));
+      game.poops = [];
+      game.health = Math.min(CONFIG.MAX_STAT, game.health + healthGain);
+      game.happy = Math.min(CONFIG.MAX_STAT, game.happy + CONFIG.CLEAN_HAPPY);
+      game.energy = Math.max(0, game.energy - CONFIG.CLEAN_ENERGY_COST);
+      if (game.isSick) {
+        game.isSick = false; game.sickTimer = 0;
+        addLog('💊 环境变干净后，' + game.name + '的病好了！');
+      }
+      document.querySelectorAll('.poop').forEach(function(p) { p.remove(); });
+      spawnEffect('✨');
+      addLog('🧹 打扫干净了！健康+' + healthGain + '，精力-3（打扫累了）');
+      saveGame();
+      updateUI();
+    }
+
+    function actionDiscipline() {
+      if (!canAct()) return;
+      if (game.sleeping) { addLog('💤 它在睡觉...'); return; }
+      if (game.isRunaway) { addLog('🏃 ' + game.name + '不在家！'); return; }
+      var discGain = Math.round(CONFIG.DISCIPLINE_DISC * getMod('disciplineGain'));
+      game.discipline = Math.min(CONFIG.MAX_STAT, game.discipline + discGain);
+      game.happy = Math.max(0, game.happy - CONFIG.DISCIPLINE_HAPPY_PENALTY);
+      game.energy = Math.max(0, game.energy - CONFIG.DISCIPLINE_ENERGY_COST);
+      if (game.isRunaway && Math.random() < 0.3) {
+        addLog('📢 你的呼唤让' + game.name + '心软了...');
+        petReturn();
+        return;
+      }
+      animatePet('shake');
+      addLog('📢 管教了' + game.name + '，纪律+' + discGain + '，心情-8，精力-2');
+      saveGame();
+      updateUI();
+    }
+
+    function canAct() {
+      if (game.dead) { addLog('💀 宠物已经离开了...'); return false; }
+      if (!game.started) { addLog('🥚 还没开始呢！'); return false; }
+      return true;
+    }
+
+    function spawnPoop() {
+      if (game.poops.length >= 5) return;
+      var screen = $('screen');
+      var poop = document.createElement('div');
+      poop.className = 'poop';
+      poop.textContent = '💩';
+      var x = 20 + Math.random() * 60;
+      var y = 20 + Math.random() * 30;
+      poop.style.left = x + '%';
+      poop.style.bottom = y + '%';
+      screen.appendChild(poop);
+      game.poops.push({x: x, y: y});
+      addLog('💩 ' + game.name + '便便了！记得打扫！');
+    }
+
+    function renderPoop(x, y) {
+      var screen = $('screen');
+      var poop = document.createElement('div');
+      poop.className = 'poop';
+      poop.textContent = '💩';
+      poop.style.left = x + '%';
+      poop.style.bottom = y + '%';
+      screen.appendChild(poop);
+    }
+
+    function animatePet(animName) {
+      var pet = $('petEmoji');
+      pet.style.animation = animName + ' 0.8s ease';
+      setTimeout(function() { updatePetAnimation(); }, 800);
+    }
+
+    function updatePetAnimation() {
+      var pet = $('petEmoji');
+      pet.style.animation = getIdleAnimation();
+      if (game.isSick || game.health < 30) {
+        pet.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3)) brightness(0.7) saturate(0.6)';
+      } else if (game.happy > 80) {
+        pet.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3)) brightness(1.1)';
+      } else {
+        pet.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))';
+      }
+    }
+
+    function spawnEffect(emoji) {
+      var container = $('petContainer');
+      var effect = document.createElement('div');
+      effect.className = (emoji === '💤' || emoji === '🌙') ? 'zzz-effect' : 'heart-effect';
+      effect.textContent = emoji;
+      effect.style.left = '50%';
+      effect.style.top = '-20px';
+      container.appendChild(effect);
+      setTimeout(function() { effect.remove(); }, 1000);
+    }
+
+    function showNotification(text) {
+      var notif = $('notification');
+      notif.textContent = text;
+      notif.classList.remove('hidden');
+      setTimeout(function() { notif.classList.add('hidden'); }, 2500);
+    }
+
+    function addLog(msg) {
+      var logArea = $('logArea');
+      var entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.textContent = msg;
+      logArea.appendChild(entry);
+      logArea.scrollTop = logArea.scrollHeight;
+      while (logArea.children.length > 20) logArea.removeChild(logArea.firstChild);
+    }
+
+    function die() {
+      game.dead = true;
+      clearInterval(gameInterval);
+      if (walkInterval) clearTimeout(walkInterval);
+      $('petEmoji').textContent = '👻';
+      $('petEmoji').style.animation = 'none';
+      $('petEmoji').style.filter = 'grayscale(1)';
+      var cause = '健康耗尽';
+      if (game.hunger <= 0) cause = '饥饿过度';
+      else if (game.isSick) cause = '疾病';
+      showOverlay('👻', game.name + '离开了...', '死因：' + cause + '\n它陪伴了你 ' + game.age + ' 天。\n谢谢你照顾它。', '重新开始', function() {
+        clearSave();
+        resetGameInternal();
+        showDrawScreen();
+      });
+      addLog('💀 ' + game.name + '永远睡去了...（死因：' + cause + '）');
+      saveGame();
+    }
+
+    function resetGameInternal() {
+      if (walkInterval) clearTimeout(walkInterval);
+      game = createNewGame();
+      document.querySelectorAll('.poop').forEach(function(p) { p.remove(); });
+      $('petEmoji').textContent = '🥚';
+      $('petEmoji').style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))';
+      $('petContainer').style.left = '50%';
+      $('petContainer').style.opacity = '1';
+      $('logArea').innerHTML = '<div class="log-entry">🎮 欢迎来到拓麻歌子！</div>';
+    }
+
+    function updateUI() {
+      var stageInfo = STAGES[game.stage] || STAGES[0];
+      var sc = getCurrentStageConfig();
+      var pt = getPetType();
+      $('petEmoji').textContent = getStageEmoji(game.stage);
+      if (game.name) $('petName').textContent = game.name;
+      $('stageBadge').textContent = getStageEmoji(game.stage) + ' ' + stageInfo.name;
+      $('ageDisplay').textContent = '年龄: ' + game.age + '天';
+      $('stageInfo').textContent = sc.desc;
+      $('statsDetail').textContent = '心情: ' + game.mood;
+
+      var tag = $('consequenceTag');
+      if (game.isRunaway) {
+        tag.textContent = '🏃 离家出走中';
+        tag.className = 'consequence-tag tag-danger';
+      } else if (game.isSick) {
+        tag.textContent = '🤒 生病中';
+        tag.className = 'consequence-tag tag-danger';
+      } else if (game.discipline < CONFIG.RUNAWAY_DISC_THRESHOLD) {
+        tag.textContent = '⚠️ 可能离家出走';
+        tag.className = 'consequence-tag tag-warning';
+      } else if (game.poops.length >= CONFIG.SICK_POOP_THRESHOLD) {
+        tag.textContent = '⚠️ 容易生病';
+        tag.className = 'consequence-tag tag-warning';
+      } else if (game.hunger <= 0) {
+        tag.textContent = '⚠️ 饥饿危险';
+        tag.className = 'consequence-tag tag-danger';
+      } else if (game.happy < CONFIG.DEPRESSION_THRESHOLD) {
+        tag.textContent = '⚠️ 心情抑郁';
+        tag.className = 'consequence-tag tag-warning';
+      } else {
+        tag.className = 'consequence-tag hidden';
+      }
+
+      var bars = [
+        { label: '饱食', value: game.hunger, class: 'bar-hunger' },
+        { label: '心情', value: game.happy, class: 'bar-happy' },
+        { label: '精力', value: game.energy, class: 'bar-energy' },
+        { label: '健康', value: game.health, class: 'bar-health' },
+        { label: '纪律', value: game.discipline, class: 'bar-discipline' }
+      ];
+      $('statusBars').innerHTML = bars.map(function(b) {
+        return '<div class="bar-wrap"><div class="bar-label">' + b.label + '</div><div class="bar-track"><div class="bar-fill ' + b.class + '" style="width:' + b.value + '%"></div></div></div>';
+      }).join('');
+    }
+
+    init();
+  </script>
+</body>
+</html>
