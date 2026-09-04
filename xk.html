@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🌌 真实宇宙 · 深空探索</title>
+    <title>🌌 从太阳系看向宇宙</title>
     <style>
         * {
             margin: 0;
@@ -19,19 +19,17 @@
             display: block;
         }
 
-        /* 极简沉浸式UI - 几乎隐形的提示 */
-        .immersive-hint {
+        .hint {
             position: fixed;
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.12);
             font-size: 12px;
             letter-spacing: 2px;
             font-weight: 300;
             background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
             padding: 8px 22px;
             border-radius: 40px;
             border: 1px solid rgba(255, 255, 255, 0.03);
@@ -40,27 +38,14 @@
             user-select: none;
             white-space: nowrap;
             text-shadow: 0 0 20px rgba(0,0,0,0.9);
-            transition: opacity 2s ease;
         }
-        .immersive-hint span {
-            opacity: 0.5;
-        }
-        @media (max-width: 600px) {
-            .immersive-hint {
-                font-size: 10px;
-                padding: 6px 14px;
-                bottom: 16px;
-                white-space: normal;
-                letter-spacing: 1px;
-            }
-        }
+        .hint span { opacity: 0.5; }
 
-        /* 极简坐标显示，非常微弱 */
-        .deep-coords {
+        .coords {
             position: fixed;
             top: 20px;
             right: 24px;
-            color: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.06);
             font-size: 11px;
             font-weight: 300;
             font-variant-numeric: tabular-nums;
@@ -72,24 +57,15 @@
             text-shadow: 0 0 10px rgba(0,0,0,0.9);
         }
 
-        /* 加载完成前的占位 */
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: rgba(255,255,255,0.1);
-            font-size: 14px;
-            letter-spacing: 3px;
-            z-index: 0;
+        @media (max-width: 600px) {
+            .hint { font-size: 10px; padding: 6px 14px; bottom: 16px; white-space: normal; }
         }
     </style>
 </head>
 <body>
 
-    <div class="immersive-hint">✦ <span>拖拽旋转 · 滚轮缩放 · WASD飞行 · Shift加速</span></div>
-    <div class="deep-coords" id="deepCoords">∞ · ∞ · ∞</div>
-    <div class="loading">加载星海 ...</div>
+    <div class="hint">✦ <span>拖拽旋转 · 滚轮缩放 · WASD飞行 · Shift加速</span></div>
+    <div class="coords" id="coords">∞ · ∞ · ∞</div>
 
     <script type="importmap">
         {
@@ -101,146 +77,167 @@
     </script>
 
     <script type="module">
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 1. 核心导入
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 2. 场景设置 — 极暗，深邃
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ─── 场景 ──────────────────────────────────────────────
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x010106); // 近似纯黑，略偏深蓝
+        scene.background = new THREE.Color(0x020208);
 
-        // 极其微弱的雾效，只为了柔化极远处的边缘，不影响近处清晰度
-        scene.fog = new THREE.FogExp2(0x010106, 0.00025);
+        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 800);
+        camera.position.set(0, 1.5, 0); // 位于银河盘面内
 
-        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1200);
-        // 起始位置：悬停在银河系外围，感受到宇宙的空旷
-        camera.position.set(18, 12, 34);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 0.9;
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMappingExposure = 0.8;
         document.body.prepend(renderer.domElement);
 
-        // 移除加载提示
-        document.querySelector('.loading')?.remove();
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 3. 控制器 — 阻尼平滑，视野极远
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ─── 控制器 ──────────────────────────────────────────
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 0, 0);
+        controls.target.set(0, 1.5, 0);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.minDistance = 0.8;
-        controls.maxDistance = 400;      // 允许拉远到极远，感受空旷
-        controls.autoRotate = false;
-        controls.zoomSpeed = 0.6;
+        controls.minDistance = 0.5;
+        controls.maxDistance = 500;
+        controls.zoomSpeed = 0.8;
         controls.rotateSpeed = 0.3;
         controls.update();
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 4. 工具：极致细腻的星星纹理（柔和光晕）
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function createStarTexture() {
-            const size = 64;
+        // ─── 星星纹理 ──────────────────────────────────────
+        function makeStarTexture() {
             const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
+            canvas.width = 64;
+            canvas.height = 64;
             const ctx = canvas.getContext('2d');
-            const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-            gradient.addColorStop(0, 'rgba(255,255,255,1)');
-            gradient.addColorStop(0.1, 'rgba(255,255,255,0.9)');
-            gradient.addColorStop(0.5, 'rgba(255,255,255,0.3)');
-            gradient.addColorStop(1, 'rgba(255,255,255,0)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, size, size);
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.needsUpdate = true;
-            return texture;
+            const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            grad.addColorStop(0, 'rgba(255,255,255,1)');
+            grad.addColorStop(0.1, 'rgba(255,255,255,0.9)');
+            grad.addColorStop(0.6, 'rgba(255,255,255,0.3)');
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(canvas);
         }
-        const starTexture = createStarTexture();
+        const starTex = makeStarTexture();
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 5. 创建主星系 (银河) — 真实感，稀疏而浩渺
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function createGalaxy() {
-            // 粒子数量大幅增加，但分布更散，营造“空旷感”
-            const count = 180000;
-            const radius = 65;
+        // ─── 1. 背景星场 (包裹全天的遥远恒星) ──────────────
+        function createBackgroundSphere() {
+            const count = 60000;
+            const radius = 350;
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+            const sizes = new Float32Array(count);
+
+            for (let i = 0; i < count; i++) {
+                // 均匀分布在球壳上
+                const r = radius * (0.8 + Math.random() * 0.2);
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                positions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i*3+1] = r * Math.cos(phi);
+                positions[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
+
+                // 颜色偏冷白，少量暖色
+                const temp = Math.random();
+                let c = new THREE.Color(0xddeeff);
+                if (temp < 0.2) c = new THREE.Color(0xffeedd);
+                else if (temp < 0.4) c = new THREE.Color(0xccddff);
+                c.r += (Math.random() - 0.5) * 0.04;
+                c.g += (Math.random() - 0.5) * 0.04;
+                c.b += (Math.random() - 0.5) * 0.04;
+                c.r = Math.max(0.2, Math.min(1, c.r));
+                c.g = Math.max(0.2, Math.min(1, c.g));
+                c.b = Math.max(0.2, Math.min(1, c.b));
+
+                colors[i*3] = c.r;
+                colors[i*3+1] = c.g;
+                colors[i*3+2] = c.b;
+
+                sizes[i] = 0.02 + Math.random() * 0.08;
+            }
+
+            const geom = new THREE.BufferGeometry();
+            geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geom.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const mat = new THREE.PointsMaterial({
+                size: 0.07,
+                map: starTex,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.7,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                sizeAttenuation: true,
+            });
+            return new THREE.Points(geom, mat);
+        }
+        scene.add(createBackgroundSphere());
+
+        // ─── 2. 银河盘 (带状, 相机位于盘内) ──────────────
+        function createGalacticDisk() {
+            const count = 120000;
+            const radius = 120;
+            const thickness = 2.5;
             const arms = 2;
-            const spin = 2.0;
-            const randomness = 0.65;
-            const thickness = 1.2;
+            const spin = 1.8;
+            const randomness = 0.6;
 
             const positions = new Float32Array(count * 3);
             const colors = new Float32Array(count * 3);
             const sizes = new Float32Array(count);
 
-            // 真实星系颜色：中心暖黄，外围冷蓝，少量红巨星
-            const colorCenter = new THREE.Color(0xffcc77);
-            const colorMid = new THREE.Color(0xffaa66);
-            const colorOuter = new THREE.Color(0x88aaff);
+            const centerCol = new THREE.Color(0xffcc77);
+            const midCol = new THREE.Color(0xffaa66);
+            const outerCol = new THREE.Color(0x88aaff);
 
             for (let i = 0; i < count; i++) {
-                // 使用随机半径，但偏向中心聚集（指数分布感觉）
-                const r = radius * Math.pow(Math.random(), 0.8);
+                const r = radius * Math.pow(Math.random(), 0.7);
                 const armAngle = (i % arms) / arms * Math.PI * 2;
-                const angle = r * spin * 0.8 + armAngle;
-                
-                // 随机偏移，让星星有自然散布
-                const randX = (Math.random() - 0.5) * randomness * (0.4 + 0.6 * (r / radius));
-                const randZ = (Math.random() - 0.5) * randomness * (0.4 + 0.6 * (r / radius));
-                const randY = (Math.random() - 0.5) * thickness * (1 - r / radius * 0.5);
+                const angle = r * spin * 0.7 + armAngle;
 
-                const x = Math.cos(angle) * r + randX * 1.2;
-                const z = Math.sin(angle) * r + randZ * 1.2;
-                const y = randY * 1.0;
+                const randX = (Math.random() - 0.5) * randomness * (0.3 + 0.7 * (r / radius));
+                const randZ = (Math.random() - 0.5) * randomness * (0.3 + 0.7 * (r / radius));
+                const randY = (Math.random() - 0.5) * thickness * (1 - r / radius * 0.4);
 
-                positions[i * 3] = x;
-                positions[i * 3 + 1] = y;
-                positions[i * 3 + 2] = z;
+                const x = Math.cos(angle) * r + randX * 1.5;
+                const z = Math.sin(angle) * r + randZ * 1.5;
+                const y = randY * 0.8;
 
-                // 颜色随距离变化
+                positions[i*3] = x;
+                positions[i*3+1] = y;
+                positions[i*3+2] = z;
+
                 const t = Math.min(1, r / radius);
-                let color;
-                if (t < 0.2) {
-                    color = colorCenter.clone().lerp(colorMid, t / 0.2);
-                } else {
-                    color = colorMid.clone().lerp(colorOuter, (t - 0.2) / 0.8);
-                }
-                // 加入细微随机变化，更自然
-                color.r += (Math.random() - 0.5) * 0.06;
-                color.g += (Math.random() - 0.5) * 0.06;
-                color.b += (Math.random() - 0.5) * 0.06;
-                color.r = Math.max(0.2, Math.min(1, color.r));
-                color.g = Math.max(0.2, Math.min(1, color.g));
-                color.b = Math.max(0.2, Math.min(1, color.b));
+                let col;
+                if (t < 0.25) col = centerCol.clone().lerp(midCol, t / 0.25);
+                else col = midCol.clone().lerp(outerCol, (t - 0.25) / 0.75);
+                col.r += (Math.random() - 0.5) * 0.06;
+                col.g += (Math.random() - 0.5) * 0.06;
+                col.b += (Math.random() - 0.5) * 0.06;
+                col.r = Math.max(0.15, Math.min(1, col.r));
+                col.g = Math.max(0.15, Math.min(1, col.g));
+                col.b = Math.max(0.15, Math.min(1, col.b));
 
-                colors[i * 3] = color.r;
-                colors[i * 3 + 1] = color.g;
-                colors[i * 3 + 2] = color.b;
+                colors[i*3] = col.r;
+                colors[i*3+1] = col.g;
+                colors[i*3+2] = col.b;
 
-                // 星星大小：远处小，近处大，且随机变化
                 const sizeBase = 0.02 + Math.random() * 0.06;
-                const sizeFactor = 1 - t * 0.4;
-                sizes[i] = sizeBase * (0.6 + 0.6 * (1 - t));
+                sizes[i] = sizeBase * (0.7 + 0.5 * (1 - t));
             }
 
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+            const geom = new THREE.BufferGeometry();
+            geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geom.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-            const material = new THREE.PointsMaterial({
+            const mat = new THREE.PointsMaterial({
                 size: 0.08,
-                map: starTexture,
+                map: starTex,
                 vertexColors: true,
                 transparent: true,
                 opacity: 0.95,
@@ -249,219 +246,129 @@
                 sizeAttenuation: true,
             });
 
-            const points = new THREE.Points(geometry, material);
-            points.name = 'galaxy';
-            return points;
+            const disk = new THREE.Points(geom, mat);
+            // 轻微倾斜，与真实银河一致
+            disk.rotation.x = 0.2;
+            disk.rotation.z = 0.05;
+            return disk;
         }
 
-        const galaxy = createGalaxy();
-        // 轻微倾斜，模拟真实银河角度
-        galaxy.rotation.x = 0.3;
-        galaxy.rotation.z = 0.1;
-        scene.add(galaxy);
+        const galaxyDisk = createGalacticDisk();
+        scene.add(galaxyDisk);
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 6. 背景深渊恒星 (远处星场) — 营造无限感
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function createDeepField() {
-            const count = 35000;
-            const radius = 450;
-            const positions = new Float32Array(count * 3);
-            const colors = new Float32Array(count * 3);
-            const sizes = new Float32Array(count);
-
-            for (let i = 0; i < count; i++) {
-                // 均匀分布在巨大球壳上
-                const r = radius * (0.7 + Math.random() * 0.3);
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-
-                positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-                positions[i * 3 + 1] = r * Math.cos(phi) * 0.6; // 略微扁平
-                positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-
-                // 颜色偏冷白、淡蓝，极个别淡黄
-                const temp = Math.random();
-                let c;
-                if (temp < 0.7) c = new THREE.Color(0xddeeff);
-                else if (temp < 0.9) c = new THREE.Color(0xffeedd);
-                else c = new THREE.Color(0xccddff);
-                c.r += (Math.random() - 0.5) * 0.04;
-                c.g += (Math.random() - 0.5) * 0.04;
-                c.b += (Math.random() - 0.5) * 0.04;
-                c.r = Math.max(0.3, Math.min(1, c.r));
-                c.g = Math.max(0.3, Math.min(1, c.g));
-                c.b = Math.max(0.3, Math.min(1, c.b));
-
-                colors[i * 3] = c.r;
-                colors[i * 3 + 1] = c.g;
-                colors[i * 3 + 2] = c.b;
-
-                sizes[i] = 0.02 + Math.random() * 0.06;
-            }
-
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-            const material = new THREE.PointsMaterial({
-                size: 0.06,
-                map: starTexture,
-                vertexColors: true,
+        // ─── 3. 银河系中心光晕 (极淡) ──────────────────────
+        function createCoreGlow() {
+            const geo = new THREE.SphereGeometry(2.0, 24, 24);
+            const mat = new THREE.MeshBasicMaterial({
+                color: 0xffaa55,
                 transparent: true,
-                opacity: 0.6,
+                opacity: 0.06,
                 blending: THREE.AdditiveBlending,
-                depthWrite: false,
-                sizeAttenuation: true,
             });
-
-            const points = new THREE.Points(geometry, material);
-            points.name = 'deepField';
-            return points;
+            return new THREE.Mesh(geo, mat);
         }
+        scene.add(createCoreGlow());
 
-        scene.add(createDeepField());
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 7. 极淡星云 (真实宇宙中微弱的星际物质)
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function createRealisticNebulae() {
+        // ─── 4. 远处星云 (非常黯淡) ──────────────────────────
+        function createNebulae() {
             const group = new THREE.Group();
-            // 只生成少量，且非常黯淡
-            const nebulaCount = 4;
+            const count = 5;
             const colors = [
-                new THREE.Color(0x8a6bbf), // 暗紫
-                new THREE.Color(0x4f7aaa), // 暗蓝
-                new THREE.Color(0xaa6b7a), // 暗红
-                new THREE.Color(0x6a8a7a), // 暗青
+                new THREE.Color(0x7a5c9a), new THREE.Color(0x4a7a9a),
+                new THREE.Color(0x9a6a7a), new THREE.Color(0x5a8a7a),
+                new THREE.Color(0x8a6a6a)
             ];
+            for (let n = 0; n < count; n++) {
+                const stars = 300 + Math.floor(Math.random() * 300);
+                const radius = 5 + Math.random() * 8;
+                const col = colors[n % colors.length].clone();
 
-            for (let n = 0; n < nebulaCount; n++) {
-                const count = 400 + Math.floor(Math.random() * 300);
-                const radius = 3.0 + Math.random() * 6.0;
-                const color = colors[n % colors.length].clone();
-
-                // 分布在银河外围较远位置
                 const angle = Math.random() * Math.PI * 2;
-                const dist = 28 + Math.random() * 35;
+                const dist = 40 + Math.random() * 60;
                 const cx = Math.cos(angle) * dist;
                 const cz = Math.sin(angle) * dist;
-                const cy = (Math.random() - 0.5) * 10;
+                const cy = (Math.random() - 0.5) * 15;
 
-                const positions = new Float32Array(count * 3);
-                const colorsArr = new Float32Array(count * 3);
-                const sizes = new Float32Array(count);
+                const pos = new Float32Array(stars * 3);
+                const colArr = new Float32Array(stars * 3);
+                const sizeArr = new Float32Array(stars);
 
-                for (let i = 0; i < count; i++) {
-                    const r = radius * Math.pow(Math.random(), 0.7);
+                for (let i = 0; i < stars; i++) {
+                    const r = radius * Math.pow(Math.random(), 0.6);
                     const theta = Math.random() * Math.PI * 2;
                     const phi = Math.acos(2 * Math.random() - 1);
-
-                    const x = cx + r * Math.sin(phi) * Math.cos(theta);
-                    const y = cy + r * Math.cos(phi) * 0.5;
-                    const z = cz + r * Math.sin(phi) * Math.sin(theta);
-
-                    positions[i * 3] = x;
-                    positions[i * 3 + 1] = y;
-                    positions[i * 3 + 2] = z;
+                    pos[i*3] = cx + r * Math.sin(phi) * Math.cos(theta);
+                    pos[i*3+1] = cy + r * Math.cos(phi) * 0.5;
+                    pos[i*3+2] = cz + r * Math.sin(phi) * Math.sin(theta);
 
                     const t = r / radius;
-                    const c = color.clone().lerp(new THREE.Color(0x8899aa), t * 0.6);
+                    const c = col.clone().lerp(new THREE.Color(0x99aabb), t * 0.5);
                     c.r += (Math.random() - 0.5) * 0.03;
                     c.g += (Math.random() - 0.5) * 0.03;
                     c.b += (Math.random() - 0.5) * 0.03;
                     c.r = Math.max(0.1, Math.min(1, c.r));
                     c.g = Math.max(0.1, Math.min(1, c.g));
                     c.b = Math.max(0.1, Math.min(1, c.b));
-
-                    colorsArr[i * 3] = c.r;
-                    colorsArr[i * 3 + 1] = c.g;
-                    colorsArr[i * 3 + 2] = c.b;
-
-                    sizes[i] = 0.2 + Math.random() * 0.6 * (1 - t * 0.4);
+                    colArr[i*3] = c.r;
+                    colArr[i*3+1] = c.g;
+                    colArr[i*3+2] = c.b;
+                    sizeArr[i] = 0.3 + Math.random() * 0.8 * (1 - t * 0.3);
                 }
 
-                const geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                geometry.setAttribute('color', new THREE.BufferAttribute(colorsArr, 3));
-                geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+                const geom = new THREE.BufferGeometry();
+                geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+                geom.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
+                geom.setAttribute('size', new THREE.BufferAttribute(sizeArr, 1));
 
-                const material = new THREE.PointsMaterial({
-                    size: 0.9,
-                    map: starTexture,
+                const mat = new THREE.PointsMaterial({
+                    size: 0.8,
+                    map: starTex,
                     vertexColors: true,
                     transparent: true,
-                    opacity: 0.04 + Math.random() * 0.03, // 极淡
+                    opacity: 0.03 + Math.random() * 0.02,
                     blending: THREE.AdditiveBlending,
                     depthWrite: false,
                     sizeAttenuation: true,
                 });
-
-                const points = new THREE.Points(geometry, material);
+                const points = new THREE.Points(geom, mat);
                 points.userData = {
-                    rotSpeed: 0.00005 + Math.random() * 0.0001,
-                    axis: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(),
+                    rotSpeed: 0.00003 + Math.random() * 0.00006,
+                    axis: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize()
                 };
                 group.add(points);
             }
-            group.name = 'nebulae';
             return group;
         }
-
-        const nebulaGroup = createRealisticNebulae();
+        const nebulaGroup = createNebulae();
         scene.add(nebulaGroup);
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 8. 银河系核心微弱光晕 (极淡)
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function createCoreGlow() {
-            const geometry = new THREE.SphereGeometry(2.2, 32, 32);
-            const material = new THREE.MeshBasicMaterial({
-                color: 0xffaa55,
-                transparent: true,
-                opacity: 0.08,
-                blending: THREE.AdditiveBlending,
-            });
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.name = 'coreGlow';
-            return mesh;
-        }
-        scene.add(createCoreGlow());
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 9. 键盘控制 (带惯性滑动)
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ─── 键盘控制 ──────────────────────────────────────────
         const keys = { w: false, s: false, a: false, d: false, shift: false };
         window.addEventListener('keydown', (e) => {
-            const key = e.key.toLowerCase();
-            if (key === 'w' || key === 's' || key === 'a' || key === 'd') keys[key] = true;
-            if (key === 'shift') keys.shift = true;
-            if (['w', 's', 'a', 'd', 'shift', ' '].includes(key)) e.preventDefault();
+            const k = e.key.toLowerCase();
+            if (k === 'w' || k === 's' || k === 'a' || k === 'd') keys[k] = true;
+            if (k === 'shift') keys.shift = true;
+            if (['w','s','a','d','shift',' '].includes(k)) e.preventDefault();
         });
         window.addEventListener('keyup', (e) => {
-            const key = e.key.toLowerCase();
-            if (key === 'w' || key === 's' || key === 'a' || key === 'd') keys[key] = false;
-            if (key === 'shift') keys.shift = false;
-            if (['w', 's', 'a', 'd', 'shift', ' '].includes(key)) e.preventDefault();
+            const k = e.key.toLowerCase();
+            if (k === 'w' || k === 's' || k === 'a' || k === 'd') keys[k] = false;
+            if (k === 'shift') keys.shift = false;
+            if (['w','s','a','d','shift',' '].includes(k)) e.preventDefault();
         });
         window.addEventListener('blur', () => {
-            keys.w = false; keys.s = false; keys.a = false; keys.d = false; keys.shift = false;
+            keys.w = keys.s = keys.a = keys.d = keys.shift = false;
         });
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 10. 动画循环 — 惯性飞行 + 深邃自转
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        const speedBase = 0.10;
+        // ─── 动画循环 ──────────────────────────────────────────
+        const speedBase = 0.08;
         let velocity = new THREE.Vector3(0, 0, 0);
-        const damping = 0.92;
-
-        const coordsEl = document.getElementById('deepCoords');
+        const coordsEl = document.getElementById('coords');
 
         function animate() {
             requestAnimationFrame(animate);
 
-            // ── 惯性移动 ──
+            // 惯性移动
             const forward = new THREE.Vector3();
             camera.getWorldDirection(forward);
             forward.y = 0;
@@ -472,23 +379,18 @@
 
             let speed = speedBase * (keys.shift ? 2.0 : 1.0);
             let moveX = 0, moveZ = 0;
-
             if (keys.w) moveZ += speed;
             if (keys.s) moveZ -= speed;
             if (keys.a) moveX -= speed * 0.7;
             if (keys.d) moveX += speed * 0.7;
 
-            const targetVel = new THREE.Vector3();
-            if (moveZ !== 0) targetVel.add(forward.clone().multiplyScalar(moveZ));
-            if (moveX !== 0) targetVel.add(right.clone().multiplyScalar(moveX));
+            const target = new THREE.Vector3();
+            if (moveZ !== 0) target.add(forward.clone().multiplyScalar(moveZ));
+            if (moveX !== 0) target.add(right.clone().multiplyScalar(moveX));
 
-            // 平滑加速/减速 (惯性)
-            velocity.lerp(targetVel, 0.08);
-            if (velocity.length() < 0.001 && targetVel.length() === 0) {
-                velocity.set(0, 0, 0);
-            }
+            velocity.lerp(target, 0.08);
+            if (velocity.length() < 0.001 && target.length() === 0) velocity.set(0,0,0);
 
-            // 应用速度
             if (velocity.length() > 0.0001) {
                 camera.position.add(velocity);
                 controls.target.add(velocity);
@@ -496,38 +398,31 @@
 
             controls.update();
 
-            // ── 旋转天体 ──
-            galaxy.rotation.y += 0.00008;
-            // 星云缓慢自转
+            // 缓慢自转银河盘和星云
+            galaxyDisk.rotation.y += 0.00006;
             for (const child of nebulaGroup.children) {
-                const data = child.userData;
-                if (data?.rotSpeed) {
-                    child.rotateOnWorldAxis(data.axis, data.rotSpeed);
+                if (child.userData?.rotSpeed) {
+                    child.rotateOnWorldAxis(child.userData.axis, child.userData.rotSpeed);
                 }
             }
 
-            // ── 更新极简坐标 ──
+            // 坐标显示
             const p = camera.position;
             coordsEl.textContent = `${p.x.toFixed(1)} · ${p.y.toFixed(1)} · ${p.z.toFixed(1)}`;
 
-            // ── 渲染 ──
             renderer.render(scene, camera);
         }
 
         animate();
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 11. 响应式
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ─── 响应式 ──────────────────────────────────────────
         window.addEventListener('resize', () => {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            camera.aspect = w / h;
+            camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        console.log('🌌 真实宇宙模式已启动 — 感受无边无际的孤寂与浩渺');
+        console.log('🌌 您现在正位于银河系盘面内，仰望宇宙');
     </script>
 </body>
 </html>
