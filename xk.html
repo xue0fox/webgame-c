@@ -687,7 +687,7 @@
         }
 
         // ============================================================
-        //  5. 颜色设置交互
+        //  5. 颜色设置交互 (不依赖 renderer 事件绑定，仅初始化状态)
         // ============================================================
         function setupColorPicker() {
             // 初始化用户颜色为默认
@@ -698,8 +698,14 @@
             // 默认选中第一个颜色
             selectedColorIndex = 0;
             updateHint();
+        }
 
-            // 点击事件
+        // 事件绑定（在 renderer 初始化后调用）
+        function bindColorPickerEvents() {
+            if (!renderer || !renderer.domElement) {
+                console.error('Renderer not available for event binding');
+                return;
+            }
             renderer.domElement.addEventListener('click', onCanvasClick);
             renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: true });
         }
@@ -713,7 +719,7 @@
             // 用 touchend 判断是否点击
         }
 
-        renderer.domElement.addEventListener('touchend', (e) => {
+        renderer?.domElement?.addEventListener('touchend', (e) => {
             const touch = e.changedTouches[0];
             const dx = touch.clientX - touchStartPos.x;
             const dy = touch.clientY - touchStartPos.y;
@@ -1230,14 +1236,20 @@
         // ============================================================
         function init() {
             initScene();
+            // 确保 renderer 已初始化
+            if (!renderer) {
+                console.error('Renderer initialization failed');
+                return;
+            }
+            // 绑定颜色点击事件（必须在 renderer 存在后）
+            bindColorPickerEvents();
+            // 初始化颜色选择器状态
             setupColorPicker();
+            // 构建默认魔方
             initDefaultCube();
 
             // 窗口自适应
             window.addEventListener('resize', onResize);
-
-            // 如果用户点击"开始还原"按钮
-            // 已经在 initDefaultCube 中设置了 btnNext 的点击事件
         }
 
         // 启动
