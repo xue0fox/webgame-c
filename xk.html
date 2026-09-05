@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🌌 真实宇宙 · 从太阳系看向深空</title>
+    <title>🌌 浪漫星河 · 从太阳系望向宇宙</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: #000; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -14,15 +14,15 @@
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.15);
             font-size: 12px;
             letter-spacing: 2px;
             font-weight: 300;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.3);
             backdrop-filter: blur(4px);
             padding: 8px 22px;
             border-radius: 40px;
-            border: 1px solid rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
             z-index: 10;
             pointer-events: none;
             user-select: none;
@@ -35,7 +35,7 @@
             position: fixed;
             top: 20px;
             right: 24px;
-            color: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.08);
             font-size: 11px;
             font-weight: 300;
             font-variant-numeric: tabular-nums;
@@ -57,9 +57,7 @@
             line-height: 1.8;
             text-shadow: 0 0 10px rgba(0,0,0,0.9);
         }
-        .status .loaded {
-            color: rgba(255,255,255,0.2);
-        }
+        .status .loaded { color: rgba(255,255,255,0.2); }
 
         @media (max-width: 600px) {
             .hint { font-size: 10px; padding: 6px 14px; bottom: 16px; white-space: normal; }
@@ -73,7 +71,7 @@
     <div class="hint">✦ <span>拖拽旋转 · 滚轮缩放 · WASD飞行 · Shift加速</span></div>
     <div class="coords" id="coords">∞ · ∞ · ∞</div>
     <div class="status">
-        <div class="loaded" id="starCount">✦ 加载星图 ...</div>
+        <div class="loaded" id="starCount">✦ 星海加载中 ...</div>
     </div>
 
     <script type="importmap">
@@ -105,7 +103,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 0.85;
+        renderer.toneMappingExposure = 1.0;
         document.body.prepend(renderer.domElement);
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -116,13 +114,13 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.minDistance = 0.1;
-        controls.maxDistance = 1000;
+        controls.maxDistance = 800;
         controls.zoomSpeed = 0.6;
-        controls.rotateSpeed = 0.2;
+        controls.rotateSpeed = 0.25;
         controls.update();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 4. 星星纹理
+        // 4. 星星纹理 (带柔和光晕)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function makeStarTexture() {
             const canvas = document.createElement('canvas');
@@ -131,8 +129,8 @@
             const ctx = canvas.getContext('2d');
             const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
             grad.addColorStop(0, 'rgba(255,255,255,1)');
-            grad.addColorStop(0.08, 'rgba(255,255,255,0.95)');
-            grad.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+            grad.addColorStop(0.1, 'rgba(255,255,255,0.9)');
+            grad.addColorStop(0.6, 'rgba(255,255,255,0.2)');
             grad.addColorStop(1, 'rgba(255,255,255,0)');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 64, 64);
@@ -141,12 +139,222 @@
         const starTex = makeStarTexture();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 5. 内置恒星数据 (精简真实星表 + 算法生成背景)
+        // 5. 华丽星云纹理生成器 (彩色渐变)
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function createNebulaTexture(color1, color2, color3) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            // 主渐变
+            const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+            grad.addColorStop(0, `rgba(${color1[0]*255},${color1[1]*255},${color1[2]*255},1)`);
+            grad.addColorStop(0.3, `rgba(${color2[0]*255},${color2[1]*255},${color2[2]*255},0.7)`);
+            grad.addColorStop(0.7, `rgba(${color3[0]*255},${color3[1]*255},${color3[2]*255},0.3)`);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 256, 256);
+            // 加入一些噪声纹理
+            const imageData = ctx.getImageData(0, 0, 256, 256);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = (Math.random() - 0.5) * 15;
+                data[i] = Math.min(255, Math.max(0, data[i] + noise));
+                data[i+1] = Math.min(255, Math.max(0, data[i+1] + noise));
+                data[i+2] = Math.min(255, Math.max(0, data[i+2] + noise));
+            }
+            ctx.putImageData(imageData, 0, 0);
+            return new THREE.CanvasTexture(canvas);
+        }
 
-        // 5.1 亮星星表 (基于真实坐标的著名恒星)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 6. 构建彩色星云 (大尺寸精灵环绕天空)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function createNebulaSprites() {
+            const group = new THREE.Group();
+
+            // 定义星云颜色组合 (RGB 0-1)
+            const palettes = [
+                { c1: [0.8, 0.2, 0.6], c2: [0.4, 0.1, 0.8], c3: [0.1, 0.1, 0.3] }, // 紫红
+                { c1: [0.2, 0.6, 0.9], c2: [0.1, 0.3, 0.8], c3: [0.0, 0.1, 0.2] }, // 蓝
+                { c1: [0.9, 0.5, 0.2], c2: [0.8, 0.2, 0.1], c3: [0.3, 0.1, 0.0] }, // 橙红
+                { c1: [0.1, 0.9, 0.6], c2: [0.0, 0.5, 0.4], c3: [0.0, 0.2, 0.1] }, // 青绿
+                { c1: [0.9, 0.2, 0.9], c2: [0.6, 0.1, 0.6], c3: [0.2, 0.0, 0.2] }, // 品紫
+                { c1: [1.0, 0.8, 0.3], c2: [0.9, 0.5, 0.1], c3: [0.4, 0.2, 0.0] }, // 金
+                { c1: [0.3, 0.7, 1.0], c2: [0.1, 0.4, 0.9], c3: [0.0, 0.1, 0.3] }, // 亮蓝
+                { c1: [0.9, 0.3, 0.4], c2: [0.7, 0.1, 0.3], c3: [0.2, 0.0, 0.1] }, // 玫瑰
+            ];
+
+            // 分布在半径为 150~400 光年的球面上
+            const count = 12;
+            for (let i = 0; i < count; i++) {
+                const palette = palettes[i % palettes.length];
+                const texture = createNebulaTexture(palette.c1, palette.c2, palette.c3);
+                const material = new THREE.SpriteMaterial({
+                    map: texture,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    transparent: true,
+                    opacity: 0.7 + Math.random() * 0.2,
+                });
+                const sprite = new THREE.Sprite(material);
+                // 随机方向
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const dist = 120 + Math.random() * 300;
+                sprite.position.set(
+                    dist * Math.sin(phi) * Math.cos(theta),
+                    dist * Math.cos(phi) * 0.6, // 略扁平
+                    dist * Math.sin(phi) * Math.sin(theta)
+                );
+                // 随机大小
+                const size = 40 + Math.random() * 120;
+                sprite.scale.set(size, size, 1);
+                // 随机旋转 (不可见，但留着)
+                sprite.userData = { rotSpeed: (Math.random() - 0.5) * 0.0002 };
+                group.add(sprite);
+            }
+
+            // 额外增加几个更亮、更近的星云 (增强华丽感)
+            for (let i = 0; i < 6; i++) {
+                const palette = palettes[(i+3) % palettes.length];
+                const texture = createNebulaTexture(palette.c1, palette.c2, palette.c3);
+                const material = new THREE.SpriteMaterial({
+                    map: texture,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    transparent: true,
+                    opacity: 0.5 + Math.random() * 0.3,
+                });
+                const sprite = new THREE.Sprite(material);
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const dist = 60 + Math.random() * 150;
+                sprite.position.set(
+                    dist * Math.sin(phi) * Math.cos(theta),
+                    dist * Math.cos(phi) * 0.5,
+                    dist * Math.sin(phi) * Math.sin(theta)
+                );
+                const size = 30 + Math.random() * 80;
+                sprite.scale.set(size, size, 1);
+                group.add(sprite);
+            }
+
+            return group;
+        }
+
+        const nebulaGroup = createNebulaSprites();
+        scene.add(nebulaGroup);
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 7. 银河光晕 (巨大的半透明圆盘)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function createMilkyWayGlow() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            // 绘制一个扁平的椭圆渐变，模拟银河盘
+            const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+            grad.addColorStop(0, 'rgba(255, 240, 200, 0.4)');
+            grad.addColorStop(0.2, 'rgba(200, 180, 255, 0.3)');
+            grad.addColorStop(0.5, 'rgba(100, 120, 255, 0.15)');
+            grad.addColorStop(0.8, 'rgba(50, 60, 150, 0.05)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(256, 256, 240, 80, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 添加一些星点
+            for (let i = 0; i < 300; i++) {
+                const x = Math.random() * 512;
+                const y = 128 + Math.random() * 256;
+                const r = Math.random() * 3;
+                const alpha = Math.random() * 0.4;
+                ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({
+                map: texture,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                transparent: true,
+                opacity: 0.6,
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.position.set(0, 0, 0);
+            sprite.scale.set(600, 200, 1);
+            // 旋转使其平躺 (但我们希望它垂直于视线？实际应该放在远处环绕，但这里作为背景)
+            // 让它平躺于XZ平面，但相机在原点，所以它会形成环绕效果
+            sprite.rotation.x = Math.PI / 2;
+            return sprite;
+        }
+
+        // 将银河光晕放在较远位置，而不是原点，这样看起来像背景
+        function createMilkyWayBackground() {
+            const group = new THREE.Group();
+            // 创建两个半透明的银河盘，分开放置，产生环绕感
+            const positions = [
+                { x: 0, y: 0, z: -300, rot: 0 },
+                { x: 0, y: 0, z: 300, rot: Math.PI },
+                { x: -250, y: 0, z: 0, rot: Math.PI/2 },
+                { x: 250, y: 0, z: 0, rot: -Math.PI/2 },
+            ];
+            for (const pos of positions) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+                grad.addColorStop(0, 'rgba(255, 235, 200, 0.2)');
+                grad.addColorStop(0.3, 'rgba(200, 200, 255, 0.15)');
+                grad.addColorStop(0.7, 'rgba(100, 120, 255, 0.05)');
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.ellipse(256, 256, 200, 70, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // 添加星点
+                for (let i = 0; i < 200; i++) {
+                    const x = Math.random() * 512;
+                    const y = 150 + Math.random() * 212;
+                    const r = Math.random() * 2;
+                    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.3})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                const texture = new THREE.CanvasTexture(canvas);
+                const material = new THREE.SpriteMaterial({
+                    map: texture,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    transparent: true,
+                    opacity: 0.5,
+                });
+                const sprite = new THREE.Sprite(material);
+                sprite.position.set(pos.x, pos.y, pos.z);
+                sprite.scale.set(400, 140, 1);
+                sprite.rotation.x = Math.PI / 2;
+                sprite.rotation.z = pos.rot;
+                group.add(sprite);
+            }
+            return group;
+        }
+
+        const milkyWay = createMilkyWayBackground();
+        scene.add(milkyWay);
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 8. 恒星系统 (精致粒子)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 内置亮星 (真实坐标)
         const BRIGHT_STARS = [
-            // 名称, x, y, z (光年), 视星等, 光谱类型
             ['天狼星', -2.64, -1.37, -7.79, -1.44, 'A1'],
             ['织女星', 16.73, 24.08, 10.67, 0.03, 'A0'],
             ['大角星', -8.62, 19.83, 11.16, -0.05, 'K1'],
@@ -166,29 +374,8 @@
             ['巴纳德星', -1.18, 1.52, -5.22, 9.54, 'M4'],
             ['天仓五', 3.03, 0.90, -11.22, 3.50, 'G8'],
             ['天苑四', 0.99, -3.72, -10.32, 3.73, 'K2'],
-            ['波江座40', -0.86, -2.39, -15.33, 4.43, 'K1'],
-            ['蛇夫座70', -0.32, 9.66, -15.75, 4.03, 'K0'],
-            ['孔雀座δ', 3.26, -14.85, -16.40, 3.56, 'G8'],
-            ['格利泽581', 0.45, -1.39, -20.21, 10.56, 'M3'],
-            ['巨蟹座55', 13.12, -10.04, -36.73, 5.95, 'G8'],
-            ['仙女座υ', 15.42, -0.48, -41.62, 4.09, 'F8'],
-            ['HD 209458', 3.92, 3.53, -153.88, 7.65, 'G0'],
-            // 添加更多亮星
-            ['轩辕十四', -31.58, -19.45, -77.15, 1.35, 'B7'],
-            ['十字架二', -320.56, 118.37, -262.27, 0.77, 'B0'],
-            ['十字架三', -329.20, 110.14, -274.12, 1.25, 'B1'],
-            ['马腹一', -366.29, 151.02, -218.63, 0.61, 'B1'],
-            ['水委一', -71.86, -43.16, -125.02, 0.45, 'B6'],
-            ['北落师门', 9.40, -26.88, -25.88, 1.16, 'A3'],
-            ['天津二', 824.39, 1027.95, 945.08, 1.91, 'A1'],
-            ['天津三', 836.43, 1040.91, 972.07, 2.23, 'A2'],
-            ['天津四', 933.75, 1083.89, 1011.97, 1.25, 'A2'], // 重复但保留
-            ['天津九', 908.06, 1062.72, 985.08, 2.25, 'A1'],
-            ['天津增九', 889.20, 1052.26, 976.48, 2.68, 'B9'],
-            ['天津增十二', 919.06, 1076.70, 994.17, 2.84, 'A0'],
         ];
 
-        // 5.2 光谱到颜色的映射
         function spectToColor(spect) {
             const s = spect.trim().toUpperCase();
             if (s.startsWith('O')) return [0.7, 0.7, 1.0];
@@ -201,10 +388,9 @@
             return [0.9, 0.9, 0.9];
         }
 
-        // 5.3 生成背景恒星 (模拟真实分布)
-        function generateBackgroundStars(count = 8000) {
+        // 生成背景恒星 (颜色丰富)
+        function generateBackgroundStars(count = 6000) {
             const stars = [];
-            // 颜色分布权重 (基于真实恒星比例)
             const types = [
                 { spect: 'O', weight: 0.001 },
                 { spect: 'B', weight: 0.01 },
@@ -214,51 +400,35 @@
                 { spect: 'K', weight: 0.35 },
                 { spect: 'M', weight: 0.189 },
             ];
-            // 累积权重
-            const cumWeights = [];
-            let total = 0;
-            for (const t of types) {
-                total += t.weight;
-                cumWeights.push(total);
-            }
+            const total = types.reduce((s, t) => s + t.weight, 0);
+            const cum = [];
+            let acc = 0;
+            for (const t of types) { acc += t.weight; cum.push(acc); }
 
             for (let i = 0; i < count; i++) {
-                // 距离：对数分布，大部分在 20-500 ly，少量更远
-                const d = 5 + Math.pow(Math.random(), 1.8) * 800;
-                // 方向均匀球面
+                const d = 5 + Math.pow(Math.random(), 1.6) * 600;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
                 const x = d * Math.sin(phi) * Math.cos(theta);
                 const y = d * Math.cos(phi);
                 const z = d * Math.sin(phi) * Math.sin(theta);
-
-                // 随机光谱类型
                 const rand = Math.random() * total;
                 let spect = 'G';
-                for (let j = 0; j < cumWeights.length; j++) {
-                    if (rand <= cumWeights[j]) {
-                        spect = types[j].spect;
-                        break;
-                    }
+                for (let j = 0; j < cum.length; j++) {
+                    if (rand <= cum[j]) { spect = types[j].spect; break; }
                 }
-                // 视星等大致随距离增加而变暗，但加入随机
                 const mag = 3 + Math.log10(d) * 2 + (Math.random() - 0.5) * 3;
                 stars.push({ x, y, z, mag, spect });
             }
             return stars;
         }
 
-        // 合并亮星和背景星
-        const brightStarData = BRIGHT_STARS.map(([name, x, y, z, mag, spect]) => ({ x, y, z, mag, spect }));
-        const bgStars = generateBackgroundStars(7000);
-        const allStars = [...brightStarData, ...bgStars];
+        const brightData = BRIGHT_STARS.map(([name, x, y, z, mag, spect]) => ({ x, y, z, mag, spect }));
+        const bgData = generateBackgroundStars(5000);
+        const allStars = [...brightData, ...bgData];
 
-        // 更新UI
-        document.getElementById('starCount').textContent = `✦ 恒星: ${allStars.length.toLocaleString()}  (内置精简星表)`;
+        document.getElementById('starCount').textContent = `✦ 恒星: ${allStars.length.toLocaleString()}  · 星云: 18`;
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 6. 构建恒星系统
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         function createStarField(starData) {
             const count = starData.length;
             const positions = new Float32Array(count * 3);
@@ -272,7 +442,6 @@
                 positions[i*3+2] = star.z;
 
                 const col = spectToColor(star.spect);
-                // 加入随机变化
                 const r = Math.max(0.2, Math.min(1, col[0] + (Math.random() - 0.5) * 0.1));
                 const g = Math.max(0.2, Math.min(1, col[1] + (Math.random() - 0.5) * 0.1));
                 const b = Math.max(0.2, Math.min(1, col[2] + (Math.random() - 0.5) * 0.1));
@@ -280,9 +449,8 @@
                 colors[i*3+1] = g;
                 colors[i*3+2] = b;
 
-                // 大小基于视星等
                 const brightness = Math.pow(10, -star.mag / 5);
-                sizes[i] = 0.01 + brightness * 0.35;
+                sizes[i] = 0.015 + brightness * 0.4;
             }
 
             const geom = new THREE.BufferGeometry();
@@ -308,107 +476,7 @@
         scene.add(starField);
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 7. 深空天体 (星系和星云) — 内置
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        const DSO_DATA = [
-            // 星系
-            { name: '仙女座星系 (M31)', type: 'galaxy', ra: 0.712, dec: 41.269, dist: 2.54e6, mag: 3.44, color: [0.8,0.7,0.6] },
-            { name: '三角座星系 (M33)', type: 'galaxy', ra: 23.462, dec: 30.660, dist: 2.73e6, mag: 5.72, color: [0.7,0.7,0.8] },
-            { name: 'M81 (波德星系)', type: 'galaxy', ra: 148.888, dec: 69.065, dist: 11.8e6, mag: 6.94, color: [0.8,0.7,0.5] },
-            { name: 'M87 (室女座超星系)', type: 'galaxy', ra: 187.706, dec: 12.391, dist: 53.5e6, mag: 8.60, color: [0.9,0.8,0.7] },
-            { name: 'M101 (风车星系)', type: 'galaxy', ra: 210.802, dec: 54.349, dist: 21.0e6, mag: 7.86, color: [0.7,0.8,0.9] },
-            { name: 'M51 (涡状星系)', type: 'galaxy', ra: 202.470, dec: 47.195, dist: 23.0e6, mag: 8.40, color: [0.7,0.6,0.8] },
-            // 星云
-            { name: '猎户座大星云 (M42)', type: 'nebula', ra: 83.822, dec: -5.391, dist: 1344, mag: 4.0, color: [0.5,0.3,0.8] },
-            { name: '礁湖星云 (M8)', type: 'nebula', ra: 270.030, dec: -24.383, dist: 4100, mag: 6.0, color: [0.9,0.4,0.3] },
-            { name: '三叶星云 (M20)', type: 'nebula', ra: 270.174, dec: -22.979, dist: 5200, mag: 6.3, color: [0.6,0.2,0.7] },
-            { name: '鹰状星云 (M16)', type: 'nebula', ra: 274.700, dec: -13.807, dist: 5700, mag: 6.4, color: [0.5,0.5,0.8] },
-            { name: '面纱星云 (NGC 6960)', type: 'nebula', ra: 310.950, dec: 30.700, dist: 1470, mag: 7.0, color: [0.3,0.6,0.6] },
-        ];
-
-        // 赤经赤纬转笛卡尔坐标 (以太阳为中心，距离单位光年)
-        function raDecToXYZ(raDeg, decDeg, distLy) {
-            const raRad = raDeg * Math.PI / 180;
-            const decRad = decDeg * Math.PI / 180;
-            const x = distLy * Math.cos(decRad) * Math.cos(raRad);
-            const y = distLy * Math.sin(decRad);
-            const z = distLy * Math.cos(decRad) * Math.sin(raRad);
-            return { x, y, z };
-        }
-
-        const deepSkyObjects = DSO_DATA.map(d => {
-            const pos = raDecToXYZ(d.ra, d.dec, d.dist);
-            return { ...d, x: pos.x, y: pos.y, z: pos.z };
-        });
-
-        // 构建深空天体 Sprite
-        function createDeepSkyObjects() {
-            const group = new THREE.Group();
-
-            for (const obj of deepSkyObjects) {
-                const { x, y, z, type, name, mag, color } = obj;
-                const col = new THREE.Color(color[0], color[1], color[2]);
-                const size = Math.max(0.5, 10 * Math.pow(10, -mag / 5));
-
-                let spriteMap;
-                if (type === 'galaxy') {
-                    // 星系: 椭圆光晕
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 128;
-                    canvas.height = 128;
-                    const ctx = canvas.getContext('2d');
-                    const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-                    gradient.addColorStop(0, `rgba(${col.r*255},${col.g*255},${col.b*255},1)`);
-                    gradient.addColorStop(0.3, `rgba(${col.r*255},${col.g*255},${col.b*255},0.8)`);
-                    gradient.addColorStop(0.7, `rgba(${col.r*255},${col.g*255},${col.b*255},0.3)`);
-                    gradient.addColorStop(1, `rgba(${col.r*255},${col.g*255},${col.b*255},0)`);
-                    ctx.fillStyle = gradient;
-                    ctx.beginPath();
-                    ctx.ellipse(64, 64, 56, 30, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    spriteMap = new THREE.CanvasTexture(canvas);
-                } else { // nebula
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 128;
-                    canvas.height = 128;
-                    const ctx = canvas.getContext('2d');
-                    const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-                    gradient.addColorStop(0, `rgba(${col.r*255},${col.g*255},${col.b*255},0.6)`);
-                    gradient.addColorStop(0.5, `rgba(${col.r*255},${col.g*255},${col.b*255},0.3)`);
-                    gradient.addColorStop(1, `rgba(${col.r*255},${col.g*255},${col.b*255},0)`);
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, 0, 128, 128);
-                    spriteMap = new THREE.CanvasTexture(canvas);
-                }
-
-                const material = new THREE.SpriteMaterial({
-                    map: spriteMap,
-                    blending: THREE.AdditiveBlending,
-                    depthWrite: false,
-                    transparent: true,
-                    opacity: type === 'galaxy' ? 0.8 : 0.5,
-                });
-                const sprite = new THREE.Sprite(material);
-                sprite.position.set(x, y, z);
-                const dist = Math.sqrt(x*x + y*y + z*z);
-                // 根据距离自动缩放，使得远处也能看到
-                const scale = Math.max(0.5, Math.min(6, 0.015 * dist));
-                if (type === 'galaxy') {
-                    sprite.scale.set(scale * 2, scale * 1.2, 1);
-                } else {
-                    sprite.scale.set(scale * 2.5, scale * 2.5, 1);
-                }
-                sprite.userData = { type, name };
-                group.add(sprite);
-            }
-            return group;
-        }
-
-        const dsoGroup = createDeepSkyObjects();
-        scene.add(dsoGroup);
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 8. 键盘控制
+        // 9. 键盘控制
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const keys = { w: false, s: false, a: false, d: false, shift: false };
         window.addEventListener('keydown', (e) => {
@@ -428,7 +496,7 @@
         });
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 9. 动画循环
+        // 10. 动画循环
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const speedBase = 0.12;
         let velocity = new THREE.Vector3(0, 0, 0);
@@ -437,7 +505,19 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // 惯性移动
+            // 星云缓慢旋转
+            nebulaGroup.children.forEach((sprite, index) => {
+                if (sprite.userData.rotSpeed) {
+                    sprite.rotation.z += sprite.userData.rotSpeed;
+                }
+            });
+
+            // 银河光晕缓慢旋转
+            milkyWay.children.forEach((sprite) => {
+                sprite.rotation.z += 0.0001;
+            });
+
+            // 移动控制
             const forward = new THREE.Vector3();
             camera.getWorldDirection(forward);
             forward.y = 0;
@@ -476,7 +556,7 @@
         animate();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // 10. 响应式
+        // 11. 响应式
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -484,9 +564,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        console.log('🌌 真实宇宙已启动 — 使用内置精简星表 + 深空天体');
-        console.log(`   ✦ 恒星总数: ${allStars.length}`);
-        console.log(`   ✦ 深空天体: ${deepSkyObjects.length}`);
+        console.log('🌌 浪漫星河已展开 — 绚丽的星云与银河');
     </script>
 </body>
 </html>
