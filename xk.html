@@ -115,9 +115,79 @@
             line-height: 1.5;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
-        #step-description .highlight {
-            color: #ffd700;
+
+        /* ===== 颜色选择器 ===== */
+        #color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .color-swatch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 12px;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.05);
+            min-width: 44px;
+        }
+        .color-swatch.active {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.15);
+            transform: scale(1.05);
+        }
+        .color-swatch .color-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .color-swatch .count {
+            font-size: clamp(10px, 1.6vw, 14px);
             font-weight: 600;
+            color: #ccc;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0 6px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+        .color-swatch .count.done {
+            color: #4caf50;
+        }
+        .color-swatch .count.full {
+            color: #f44336;
+        }
+        .color-swatch.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        @media (max-width: 600px) {
+            .color-swatch .color-box {
+                width: 26px;
+                height: 26px;
+            }
+            .color-swatch {
+                min-width: 36px;
+                padding: 2px 4px;
+            }
+            #color-picker {
+                gap: 4px;
+                padding: 6px 8px;
+            }
         }
 
         /* 按钮行 */
@@ -178,96 +248,7 @@
             background: rgba(255, 70, 70, 0.3);
         }
 
-        /* ===== 颜色设置模式提示 ===== */
-        #color-picker-hint {
-            position: absolute;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-size: clamp(12px, 2vw, 16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 20;
-            pointer-events: none;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-        #color-picker-hint.visible {
-            opacity: 1;
-        }
-        .color-dot {
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            flex-shrink: 0;
-        }
-        .color-dot.active {
-            border-color: #ffd700;
-            box-shadow: 0 0 16px rgba(255, 210, 0, 0.4);
-        }
-
-        /* ===== 响应式调整 ===== */
-        @media (max-width: 600px) {
-            #header {
-                padding: 8px 12px;
-            }
-            #controls {
-                padding: 8px 10px 14px;
-            }
-            #step-description {
-                padding: 10px 14px;
-                min-height: 48px;
-                font-size: 13px;
-                border-radius: 12px;
-            }
-            #button-row button {
-                padding: 10px 6px;
-                font-size: 13px;
-                border-radius: 12px;
-                min-width: 60px;
-            }
-            #color-picker-hint {
-                bottom: 100px;
-                padding: 6px 16px;
-                font-size: 11px;
-                gap: 8px;
-            }
-            .color-dot {
-                width: 16px;
-                height: 16px;
-            }
-        }
-        @media (max-width: 400px) {
-            #step-description {
-                font-size: 12px;
-                min-height: 40px;
-                padding: 8px 10px;
-            }
-            #button-row button {
-                font-size: 11px;
-                padding: 8px 4px;
-                min-width: 50px;
-            }
-            #title {
-                font-size: 12px;
-                padding: 2px 10px;
-            }
-            #step-indicator {
-                font-size: 11px;
-                padding: 2px 10px;
-            }
-        }
-
-        /* ===== 加载/提示遮罩 ===== */
+        /* ===== 加载遮罩 ===== */
         #overlay {
             position: absolute;
             inset: 0;
@@ -311,28 +292,8 @@
             text-align: center;
             padding: 0 20px;
         }
-        #overlay .btn-big {
-            margin-top: 12px;
-            padding: 14px 40px;
-            border: none;
-            border-radius: 30px;
-            font-size: clamp(16px, 2.5vw, 22px);
-            font-weight: 700;
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-            color: #1a1a2e;
-            cursor: pointer;
-            box-shadow: 0 4px 30px rgba(255, 210, 0, 0.25);
-            transition: all 0.2s;
-        }
-        #overlay .btn-big:active {
-            transform: scale(0.95);
-        }
-        #overlay .btn-big:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 40px rgba(255, 210, 0, 0.35);
-        }
 
-        /* ===== 消息弹窗 ===== */
+        /* ===== Toast ===== */
         #toast {
             position: absolute;
             top: 80px;
@@ -354,6 +315,48 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+
+        /* ===== 响应式调整 ===== */
+        @media (max-width: 600px) {
+            #header {
+                padding: 8px 12px;
+            }
+            #controls {
+                padding: 8px 10px 14px;
+            }
+            #step-description {
+                padding: 10px 14px;
+                min-height: 48px;
+                font-size: 13px;
+                border-radius: 12px;
+            }
+            #button-row button {
+                padding: 10px 6px;
+                font-size: 13px;
+                border-radius: 12px;
+                min-width: 60px;
+            }
+        }
+        @media (max-width: 400px) {
+            #step-description {
+                font-size: 12px;
+                min-height: 40px;
+                padding: 8px 10px;
+            }
+            #button-row button {
+                font-size: 11px;
+                padding: 8px 4px;
+                min-width: 50px;
+            }
+            #title {
+                font-size: 12px;
+                padding: 2px 10px;
+            }
+            #step-indicator {
+                font-size: 11px;
+                padding: 2px 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -368,19 +371,18 @@
             <div id="step-indicator">步骤 <span id="step-num">0</span> / <span id="step-total">0</span></div>
         </div>
 
-        <!-- 颜色选择提示 -->
-        <div id="color-picker-hint">
-            <span>🎨 点击小面设置颜色</span>
-            <span class="color-dot" id="hint-color" style="background:#ff0000;"></span>
-            <span id="hint-face">正面</span>
-        </div>
-
         <!-- 底部控制 -->
         <div id="controls">
-            <div id="step-description">👆 请先设置魔方各面的颜色</div>
+            <div id="step-description">👆 先选择颜色，再点击魔方小面涂色</div>
+
+            <!-- 颜色选择器 -->
+            <div id="color-picker">
+                <!-- 由 JS 动态生成 -->
+            </div>
+
             <div id="button-row">
                 <button id="btn-prev" disabled>⬅ 上一步</button>
-                <button id="btn-next" disabled>下一步 ➡</button>
+                <button id="btn-next" disabled>🚀 开始还原</button>
                 <button id="btn-reset">🔄 重置</button>
             </div>
         </div>
@@ -414,33 +416,17 @@
         // ============================================================
         //  1. 配置 & 常量
         // ============================================================
-        const COLORS = {
-            white: 0xffffff,
-            yellow: 0xffff00,
-            red: 0xff0000,
-            orange: 0xff8c00,
-            blue: 0x0066ff,
-            green: 0x00cc44,
-            gray: 0x444444,
-        };
         const FACE_NAMES = ['上', '下', '左', '右', '前', '后'];
         const FACE_COLORS = [
-            COLORS.white, // 上
-            COLORS.yellow, // 下
-            COLORS.orange, // 左
-            COLORS.red, // 右
-            COLORS.green, // 前
-            COLORS.blue, // 后
+            0xffffff, // 白
+            0xffff00, // 黄
+            0xff8c00, // 橙
+            0xff0000, // 红
+            0x00cc44, // 绿
+            0x0066ff, // 蓝
         ];
-        // 每个面9个小块的索引映射 (行优先)
-        const FACE_INDICES = [
-            [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            [0, 1, 2, 3, 4, 5, 6, 7, 8],
-        ];
+        const COLOR_HEX_STR = FACE_COLORS.map(c => '#' + c.toString(16).padStart(6, '0'));
+        const COLOR_NAMES = ['白', '黄', '橙', '红', '绿', '蓝'];
 
         // 面的法线方向
         const FACE_NORMALS = [
@@ -452,40 +438,25 @@
             new THREE.Vector3(0, 0, -1),
         ];
 
-        // 颜色名称映射
-        const COLOR_NAME_MAP = {
-            '#ffffff': '白',
-            '#ffff00': '黄',
-            '#ff0000': '红',
-            '#ff8c00': '橙',
-            '#0066ff': '蓝',
-            '#00cc44': '绿',
-            '#444444': '灰',
-        };
-
         // ============================================================
         //  2. 状态管理
         // ============================================================
-        // state[face][row][col] = 颜色值 (0-5 对应 FACE_COLORS 索引)
-        // 或者直接用颜色十六进制
-        let cubeState = [];
-        // 用户设置的颜色 (6个面, 每个面9个颜色)
-        let userColors = [];
-        // 还原步骤
+        let cubeState = []; // 6x9 颜色索引
+        let userColors = []; // 用户设置的颜色 (6x9)
         let solveSteps = [];
         let currentStepIndex = -1;
         let isSolving = false;
         let isAnimating = false;
 
-        // 选中的颜色 (用于设置)
-        let selectedColorIndex = 0; // 0-5
-        let selectedFaceIndex = -1; // -1 表示未选中面
-        let isColorPickMode = false;
+        // 颜色计数: 每种颜色已使用的数量 (初始均为0)
+        let colorUsed = [0, 0, 0, 0, 0, 0];
+        // 当前选中的颜色索引
+        let selectedColorIndex = 0;
 
         // Three.js 对象
         let scene, camera, renderer, controls;
         let cubeGroup;
-        let stickerMeshes = []; // 所有小面片 mesh
+        let stickerMeshes = [];
         let stickerData = []; // { mesh, face, row, col, colorIndex }
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
@@ -499,10 +470,8 @@
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
         const btnReset = document.getElementById('btn-reset');
-        const hintEl = document.getElementById('color-picker-hint');
-        const hintColor = document.getElementById('hint-color');
-        const hintFace = document.getElementById('hint-face');
         const toastEl = document.getElementById('toast');
+        const colorPickerEl = document.getElementById('color-picker');
 
         // ============================================================
         //  3. Three.js 初始化
@@ -556,7 +525,6 @@
             rimLight.position.set(0, -6, 4);
             scene.add(rimLight);
 
-            // 地面网格（装饰）
             const gridHelper = new THREE.GridHelper(12, 20, 0x8888ff, 0x444466);
             gridHelper.position.y = -2.2;
             scene.add(gridHelper);
@@ -584,7 +552,7 @@
         //  4. 魔方构建
         // ============================================================
         function buildCube(colors) {
-            // colors: 6x9 颜色索引数组
+            // colors: 6x9 颜色索引
             if (cubeGroup) {
                 scene.remove(cubeGroup);
                 cubeGroup = null;
@@ -599,14 +567,9 @@
             const stickerSize = 0.85;
             const stickerOffset = 0.001;
 
-            // 颜色映射
-            const colorValues = FACE_COLORS;
-
-            // 创建 27 个小立方体
             for (let x = -1; x <= 1; x++) {
                 for (let y = -1; y <= 1; y++) {
                     for (let z = -1; z <= 1; z++) {
-                        // 判断哪些面可见
                         const faces = [];
                         if (y === 1) faces.push({ face: 0, row: 2 - (z + 1), col: x + 1 });
                         if (y === -1) faces.push({ face: 1, row: z + 1, col: x + 1 });
@@ -615,10 +578,8 @@
                         if (z === 1) faces.push({ face: 4, row: 2 - (y + 1), col: x + 1 });
                         if (z === -1) faces.push({ face: 5, row: 2 - (y + 1), col: 2 - (x + 1) });
 
-                        // 如果没有可见面，跳过（中心块不会出现）
                         if (faces.length === 0) continue;
 
-                        // 小立方体主体
                         const geo = new THREE.BoxGeometry(size - gap, size - gap, size - gap);
                         const mat = new THREE.MeshStandardMaterial({
                             color: 0x222222,
@@ -630,10 +591,9 @@
                         cube.castShadow = true;
                         cube.receiveShadow = true;
 
-                        // 添加贴纸
                         for (const f of faces) {
                             const ci = colors[f.face][f.row * 3 + f.col];
-                            const colorHex = colorValues[ci] || 0x444444;
+                            const colorHex = FACE_COLORS[ci] || 0x444444;
                             const stickerMat = new THREE.MeshStandardMaterial({
                                 color: colorHex,
                                 roughness: 0.3,
@@ -642,13 +602,7 @@
                                 emissiveIntensity: 0.05,
                             });
 
-                            // 贴纸位置
-                            let pos = new THREE.Vector3(x, y, z);
-                            let normal = FACE_NORMALS[f.face].clone();
-                            let up = new THREE.Vector3(0, 1, 0);
-                            if (Math.abs(normal.y) === 1) {
-                                up.set(0, 0, 1);
-                            }
+                            const normal = FACE_NORMALS[f.face].clone();
                             const q = new THREE.Quaternion().setFromUnitVectors(
                                 new THREE.Vector3(0, 0, 1),
                                 normal
@@ -656,12 +610,11 @@
 
                             const stickerGeo = new THREE.PlaneGeometry(stickerSize, stickerSize);
                             const sticker = new THREE.Mesh(stickerGeo, stickerMat);
-                            sticker.position.copy(pos).add(normal.clone().multiplyScalar(half + stickerOffset));
+                            sticker.position.set(x, y, z).add(normal.clone().multiplyScalar(half + stickerOffset));
                             sticker.quaternion.copy(q);
                             sticker.castShadow = false;
                             sticker.receiveShadow = false;
 
-                            // 存储数据
                             const data = {
                                 mesh: sticker,
                                 face: f.face,
@@ -681,29 +634,71 @@
             }
 
             scene.add(cubeGroup);
-
-            // 保存当前状态
             cubeState = colors.map(face => [...face]);
+            // 更新颜色计数
+            updateColorCounts();
         }
 
         // ============================================================
-        //  5. 颜色设置交互 (不依赖 renderer 事件绑定，仅初始化状态)
+        //  5. 颜色计数 & UI 更新
         // ============================================================
-        function setupColorPicker() {
-            // 初始化用户颜色为默认
-            userColors = FACE_COLORS.map((c, fi) => {
-                return Array(9).fill(fi);
+        function updateColorCounts() {
+            colorUsed = [0, 0, 0, 0, 0, 0];
+            for (const d of stickerData) {
+                colorUsed[d.colorIndex]++;
+            }
+            renderColorPicker();
+        }
+
+        function renderColorPicker() {
+            let html = '';
+            for (let i = 0; i < 6; i++) {
+                const used = colorUsed[i];
+                const remaining = 9 - used;
+                const isFull = remaining <= 0;
+                const activeClass = (i === selectedColorIndex) ? 'active' : '';
+                const disabledClass = isFull ? 'disabled' : '';
+                const countClass = remaining === 0 ? 'full' : (remaining <= 3 ? 'done' : '');
+                html += `
+                    <div class="color-swatch ${activeClass} ${disabledClass}" data-index="${i}">
+                        <div class="color-box" style="background:${COLOR_HEX_STR[i]};"></div>
+                        <span class="count ${countClass}">${remaining}</span>
+                    </div>
+                `;
+            }
+            colorPickerEl.innerHTML = html;
+
+            // 绑定点击事件
+            colorPickerEl.querySelectorAll('.color-swatch').forEach(el => {
+                el.addEventListener('click', () => {
+                    const idx = parseInt(el.dataset.index);
+                    if (colorUsed[idx] >= 9) {
+                        showToast('该颜色已用完！', 800);
+                        return;
+                    }
+                    selectedColorIndex = idx;
+                    renderColorPicker();
+                });
+                // 触摸优化
+                el.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const idx = parseInt(el.dataset.index);
+                    if (colorUsed[idx] >= 9) {
+                        showToast('该颜色已用完！', 800);
+                        return;
+                    }
+                    selectedColorIndex = idx;
+                    renderColorPicker();
+                }, { passive: false });
             });
-
-            // 默认选中第一个颜色
-            selectedColorIndex = 0;
-            updateHint();
         }
 
-        // 事件绑定（在 renderer 初始化后调用）
-        function bindColorPickerEvents() {
+        // ============================================================
+        //  6. 颜色设置交互 (点击小面)
+        // ============================================================
+        function setupColorPickerEvents() {
             if (!renderer || !renderer.domElement) {
-                console.error('Renderer not available for event binding');
+                console.error('Renderer not available');
                 return;
             }
             renderer.domElement.addEventListener('click', onCanvasClick);
@@ -716,7 +711,6 @@
             const touch = e.touches[0];
             touchStartPos.x = touch.clientX;
             touchStartPos.y = touch.clientY;
-            // 用 touchend 判断是否点击
         }
 
         renderer?.domElement?.addEventListener('touchend', (e) => {
@@ -724,7 +718,6 @@
             const dx = touch.clientX - touchStartPos.x;
             const dy = touch.clientY - touchStartPos.y;
             if (Math.sqrt(dx * dx + dy * dy) < 10) {
-                // 模拟点击
                 const rect = renderer.domElement.getBoundingClientRect();
                 const x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
                 const y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
@@ -741,130 +734,66 @@
 
         function handleCanvasClick(x, y) {
             if (isAnimating || isSolving) return;
+            // 如果在步骤模式，不允许修改颜色
             if (solveSteps.length > 0 && currentStepIndex >= 0) {
-                // 如果在还原步骤中，点击3D不处理颜色设置
                 return;
             }
 
             mouse.set(x, y);
             raycaster.setFromCamera(mouse, camera);
 
-            // 检测贴纸
-            const meshes = stickerMeshes;
-            const intersects = raycaster.intersectObjects(meshes);
+            const intersects = raycaster.intersectObjects(stickerMeshes);
+            if (intersects.length === 0) return;
 
-            if (intersects.length > 0) {
-                const hit = intersects[0].object;
-                // 找到对应的数据
-                const data = stickerData.find(d => d.mesh === hit);
-                if (data) {
-                    // 切换颜色
-                    const fi = data.face;
-                    const idx = data.row * 3 + data.col;
-                    // 循环颜色
-                    const newColorIndex = (data.colorIndex + 1) % 6;
-                    data.colorIndex = newColorIndex;
-                    data.mesh.material.color.setHex(FACE_COLORS[newColorIndex]);
-                    data.mesh.material.emissive.setHex(FACE_COLORS[newColorIndex]);
-                    // 更新状态
-                    userColors[fi][idx] = newColorIndex;
-                    cubeState[fi][idx] = newColorIndex;
+            const hit = intersects[0].object;
+            const data = stickerData.find(d => d.mesh === hit);
+            if (!data) return;
 
-                    // 更新提示
-                    selectedColorIndex = newColorIndex;
-                    selectedFaceIndex = fi;
-                    updateHint();
+            const oldColor = data.colorIndex;
+            const newColor = selectedColorIndex;
 
-                    // 显示toast
-                    const colorName = getColorName(FACE_COLORS[newColorIndex]);
-                    showToast(`${FACE_NAMES[fi]}面 设为 ${colorName}`);
-                }
+            if (oldColor === newColor) {
+                showToast('已经是该颜色', 600);
+                return;
             }
-        }
 
-        function getColorName(hex) {
-            const map = {
-                '#ffffff': '白',
-                '#ffff00': '黄',
-                '#ff0000': '红',
-                '#ff8c00': '橙',
-                '#0066ff': '蓝',
-                '#00cc44': '绿',
-            };
-            const h = '#' + hex.toString(16).padStart(6, '0');
-            return map[h] || '未知';
-        }
-
-        function updateHint() {
-            const colorHex = FACE_COLORS[selectedColorIndex];
-            const colorName = getColorName(colorHex);
-            hintColor.style.background = '#' + colorHex.toString(16).padStart(6, '0');
-            if (selectedFaceIndex >= 0) {
-                hintFace.textContent = `${FACE_NAMES[selectedFaceIndex]}面`;
-            } else {
-                hintFace.textContent = '点击小面';
+            // 检查新颜色是否还有剩余
+            if (colorUsed[newColor] >= 9) {
+                showToast('该颜色已用完！', 800);
+                return;
             }
-            hintEl.classList.add('visible');
-        }
 
-        function showToast(msg, duration = 1200) {
-            toastEl.textContent = msg;
-            toastEl.classList.add('show');
-            clearTimeout(toastEl._timer);
-            toastEl._timer = setTimeout(() => {
-                toastEl.classList.remove('show');
-            }, duration);
+            // 更新贴纸颜色
+            data.colorIndex = newColor;
+            data.mesh.material.color.setHex(FACE_COLORS[newColor]);
+            data.mesh.material.emissive.setHex(FACE_COLORS[newColor]);
+
+            // 更新状态
+            const fi = data.face;
+            const idx = data.row * 3 + data.col;
+            cubeState[fi][idx] = newColor;
+            userColors[fi][idx] = newColor;
+
+            // 更新计数
+            colorUsed[oldColor]--;
+            colorUsed[newColor]++;
+
+            // 刷新颜色选择器
+            renderColorPicker();
+
+            // 自动切换到下一个颜色（可选），但不强制
+            // 显示反馈
+            showToast(`${COLOR_NAMES[newColor]} +1`, 400);
         }
 
         // ============================================================
-        //  6. 还原算法 (层先法简化版)
+        //  7. 还原算法 (演示)
         // ============================================================
-        // 返回步骤数组: [{ move, description, face, from, to }]
         function computeSolveSteps(state) {
-            // state: 6x9 颜色索引
-            // 这是一个非常简化的层先法实现，只处理常见情况
-            // 实际项目中应使用 Kociemba 算法，这里提供演示
-
             const steps = [];
-            // 检查是否已还原
-            if (isSolved(state)) {
-                return steps;
-            }
+            if (isSolved(state)) return steps;
 
-            // 简化实现：生成一些基本的还原步骤
-            // 实际应该实现完整的层先法，这里仅做演示
-            // 为了展示功能，我们生成一个基于当前状态的简单还原序列
-
-            // 这里我们实现一个简单的打乱-还原演示
-            // 但真正的还原应该基于状态计算
-
-            // 由于真正的层先法实现需要数千行代码，
-            // 我们这里使用一个简化的方法：生成一些标准步骤，
-            // 让用户看到3D动画效果
-
-            // 检测状态，生成对应的还原步骤
-            // 这里我们只做演示，实际应该实现完整的算法
-
-            // 为了展示功能，我们从当前状态生成一些步骤
-            // 但真正的还原需要完整的算法
-
-            // 我们检查是否所有面都是纯色
-            const isSolvedState = isSolved(state);
-            if (isSolvedState) {
-                return steps;
-            }
-
-            // 生成一些通用的还原步骤 (演示)
-            // 实际应用中，这里应该调用真正的还原算法
-
-            // 我们生成一个示例还原序列，包含旋转操作
-            // 这些操作会根据当前状态进行调整
-
-            // 注意：这是一个演示实现，真正的还原算法需要完整的层先法或Kociemba算法
-
-            // 为了演示，我们生成一组通用的步骤
-            // 这些步骤会展示动画效果
-
+            // 演示步骤
             const demoMoves = [
                 { move: 'R', desc: '右面顺时针旋转 90°' },
                 { move: 'U', desc: '顶面顺时针旋转 90°' },
@@ -879,14 +808,7 @@
                 { move: 'R\'', desc: '右面逆时针旋转 90°' },
                 { move: 'U\'', desc: '顶面逆时针旋转 90°' },
             ];
-
-            // 根据当前状态选择不同的步骤
-            // 这里简单返回演示步骤
-            return demoMoves.map((m, i) => ({
-                ...m,
-                index: i,
-                total: demoMoves.length,
-            }));
+            return demoMoves.map((m, i) => ({ ...m, index: i, total: demoMoves.length }));
         }
 
         function isSolved(state) {
@@ -900,35 +822,19 @@
         }
 
         // ============================================================
-        //  7. 执行旋转动画
+        //  8. 执行旋转动画
         // ============================================================
         function performMove(move, callback) {
-            // move: 字符串如 "R", "U", "R'", "U'"
-            // 解析 move
             const face = move[0];
             const dir = move.length > 1 && move[1] === "'" ? -1 : 1;
-
-            // 找到对应的面
-            const faceMap = {
-                'U': 0,
-                'D': 1,
-                'L': 2,
-                'R': 3,
-                'F': 4,
-                'B': 5,
-            };
+            const faceMap = { 'U': 0, 'D': 1, 'L': 2, 'R': 3, 'F': 4, 'B': 5 };
             const fi = faceMap[face];
-            if (fi === undefined) {
-                if (callback) callback();
-                return;
-            }
+            if (fi === undefined) { if (callback) callback(); return; }
 
-            // 执行旋转
             const axis = FACE_NORMALS[fi];
             const angle = (Math.PI / 2) * dir;
-
-            // 找出需要旋转的小立方体
             const threshold = 0.1;
+
             const cubes = [];
             cubeGroup.children.forEach(child => {
                 if (child.isMesh && child.geometry.type === 'BoxGeometry') {
@@ -940,42 +846,35 @@
                 }
             });
 
-            // 收集贴纸
             const stickers = stickerData.filter(d => {
                 const pos = d.cubePos;
                 const dot = pos.dot(axis);
                 return Math.abs(dot - 1.0) < threshold || Math.abs(dot + 1.0) < threshold;
             });
 
-            // 动画旋转
-            const duration = 300; // ms
+            const duration = 300;
             const startTime = Date.now();
             const startQuats = cubes.map(c => c.quaternion.clone());
             const startPos = cubes.map(c => c.position.clone());
             const startStickerPos = stickers.map(d => d.mesh.position.clone());
             const startStickerQuat = stickers.map(d => d.mesh.quaternion.clone());
 
-            // 旋转轴
             const rotAxis = axis.clone().normalize();
             const rotQuat = new THREE.Quaternion().setFromAxisAngle(rotAxis, angle);
 
             function animateRotation() {
                 const elapsed = Date.now() - startTime;
                 const t = Math.min(elapsed / duration, 1);
-                // easeInOut
                 const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
-                // 旋转立方体
                 for (let i = 0; i < cubes.length; i++) {
                     const q = startQuats[i].clone().slerp(rotQuat.clone().multiply(startQuats[i]), ease);
                     cubes[i].quaternion.copy(q);
-                    // 位置也旋转
                     const pos = startPos[i].clone();
                     pos.applyAxisAngle(rotAxis, angle * ease);
                     cubes[i].position.copy(pos);
                 }
 
-                // 旋转贴纸
                 for (let i = 0; i < stickers.length; i++) {
                     const d = stickers[i];
                     const pos = startStickerPos[i].clone();
@@ -990,16 +889,9 @@
                 if (t < 1) {
                     requestAnimationFrame(animateRotation);
                 } else {
-                    // 完成
-                    // 更新 cubePos
                     for (const d of stickers) {
                         const pos = d.mesh.position.clone();
-                        // 四舍五入到最近的整数
-                        d.cubePos.set(
-                            Math.round(pos.x),
-                            Math.round(pos.y),
-                            Math.round(pos.z)
-                        );
+                        d.cubePos.set(Math.round(pos.x), Math.round(pos.y), Math.round(pos.z));
                     }
                     if (callback) callback();
                 }
@@ -1007,58 +899,45 @@
 
             isAnimating = true;
             animateRotation();
-
-            // 更新状态 (在动画结束后更新)
             setTimeout(() => {
                 isAnimating = false;
-                // 更新 cubeState
                 updateStateFromStickers();
             }, duration + 50);
         }
 
         function updateStateFromStickers() {
-            // 从贴纸更新状态
             for (const d of stickerData) {
                 const fi = d.face;
                 const idx = d.row * 3 + d.col;
-                // 从贴纸颜色获取
                 const colorHex = d.mesh.material.color.getHex();
                 let ci = FACE_COLORS.indexOf(colorHex);
                 if (ci === -1) ci = 0;
                 cubeState[fi][idx] = ci;
                 userColors[fi][idx] = ci;
             }
+            updateColorCounts();
         }
 
         // ============================================================
-        //  8. 步骤执行
+        //  9. 步骤执行
         // ============================================================
         function executeStep(index) {
             if (index < 0 || index >= solveSteps.length) return;
-
             const step = solveSteps[index];
-            const desc = step.desc || `执行 ${step.move}`;
-            stepDescEl.innerHTML = `📌 ${desc}`;
+            stepDescEl.innerHTML = `📌 ${step.desc}`;
             stepNumEl.textContent = index + 1;
             stepTotalEl.textContent = solveSteps.length;
-
-            // 高亮当前步骤的移动
             btnPrev.disabled = index === 0;
             btnNext.disabled = index === solveSteps.length - 1;
-
-            // 执行移动动画
             if (step.move) {
-                performMove(step.move, () => {
-                    // 动画完成
-                });
+                performMove(step.move, () => {});
             }
         }
 
         // ============================================================
-        //  9. 主流程控制
+        //  10. 主流程控制
         // ============================================================
         function startSolve() {
-            // 从当前状态计算还原步骤
             const state = cubeState.map(face => [...face]);
             if (isSolved(state)) {
                 showToast('🎉 魔方已经还原！', 2000);
@@ -1069,7 +948,6 @@
             overlay.querySelector('.msg').textContent = '🧠 计算还原步骤...';
             overlay.querySelector('.sub').textContent = '请稍候';
 
-            // 使用 setTimeout 让 UI 更新
             setTimeout(() => {
                 try {
                     const steps = computeSolveSteps(state);
@@ -1085,18 +963,13 @@
                         return;
                     }
 
-                    // 进入步骤模式
                     isSolving = true;
                     overlay.classList.add('hidden');
 
-                    // 显示第一步
                     currentStepIndex = 0;
                     executeStep(0);
                     btnNext.disabled = false;
                     btnPrev.disabled = true;
-
-                    // 隐藏颜色提示
-                    hintEl.classList.remove('visible');
 
                     showToast(`📋 共 ${steps.length} 步，开始还原！`, 1500);
 
@@ -1126,53 +999,53 @@
 
         function resetAll() {
             if (isAnimating) return;
-
-            // 重置状态
             solveSteps = [];
             currentStepIndex = -1;
             isSolving = false;
 
-            // 重置魔方到用户设置的颜色
+            // 重置到用户颜色 (但用户颜色可能不完整, 我们重新构建)
             buildCube(userColors);
             cubeState = userColors.map(face => [...face]);
+            updateColorCounts();
 
-            // 更新UI
             stepNumEl.textContent = '0';
             stepTotalEl.textContent = '0';
-            stepDescEl.textContent = '👆 请先设置魔方各面的颜色';
+            stepDescEl.textContent = '👆 先选择颜色，再点击魔方小面涂色';
             btnPrev.disabled = true;
-            btnNext.disabled = true;
+            btnNext.disabled = false;
+            btnNext.textContent = '🚀 开始还原';
+            btnNext.onclick = () => {
+                if (isSolving) {
+                    nextStep();
+                } else {
+                    startSolve();
+                    btnNext.textContent = '下一步 ➡';
+                }
+            };
 
-            // 显示颜色提示
-            hintEl.classList.add('visible');
-            showToast('🔄 已重置，请设置颜色', 1200);
+            showToast('🔄 已重置', 800);
         }
 
         // ============================================================
-        //  10. 初始化默认魔方 (打乱状态)
+        //  11. 初始化默认魔方 (打乱状态)
         // ============================================================
         function initDefaultCube() {
-            // 生成一个打乱的状态
-            const state = FACE_COLORS.map((c, fi) => {
-                return Array(9).fill(fi);
-            });
+            const state = FACE_COLORS.map((c, fi) => Array(9).fill(fi));
 
-            // 应用一些随机打乱
+            // 简单打乱 (交换颜色)
             const moves = ['R', 'U', 'F', 'R', 'U\'', 'F\'', 'R\'', 'U', 'F', 'L', 'U', 'B', 'R\'', 'U\'', 'F\'', 'D', 'R', 'U',
                 'L\'', 'F'
             ];
             let tempState = state.map(face => [...face]);
             for (const m of moves) {
-                // 模拟打乱 (只修改状态, 不更新3D)
                 tempState = applyMoveToState(tempState, m);
             }
 
-            // 用打乱后的状态构建魔方
             buildCube(tempState);
             cubeState = tempState.map(face => [...face]);
             userColors = tempState.map(face => [...face]);
 
-            // 更新stickerData的颜色索引
+            // 更新贴纸颜色索引
             for (const d of stickerData) {
                 const fi = d.face;
                 const idx = d.row * 3 + d.col;
@@ -1181,44 +1054,31 @@
                 d.mesh.material.color.setHex(FACE_COLORS[ci]);
                 d.mesh.material.emissive.setHex(FACE_COLORS[ci]);
             }
+            updateColorCounts();
 
-            // 隐藏遮罩
             overlay.classList.add('hidden');
 
-            // 显示提示
-            stepDescEl.textContent = '👆 点击小面调整颜色，然后点击"下一步"开始还原';
+            stepDescEl.textContent = '👆 先选择颜色，再点击魔方小面涂色';
             btnNext.disabled = false;
             btnNext.textContent = '🚀 开始还原';
-
-            // 颜色提示
-            hintEl.classList.add('visible');
-            selectedColorIndex = 0;
-            updateHint();
-
-            // 监听开始还原
             btnNext.onclick = () => {
                 if (isSolving) {
                     nextStep();
                 } else {
-                    // 开始还原
                     startSolve();
                     btnNext.textContent = '下一步 ➡';
                 }
             };
-
             btnPrev.onclick = prevStep;
             btnReset.onclick = resetAll;
+
+            // 默认选中第一个颜色
+            selectedColorIndex = 0;
+            renderColorPicker();
         }
 
-        // ============================================================
-        //  11. 辅助: 状态旋转 (用于打乱)
-        // ============================================================
         function applyMoveToState(state, move) {
-            // 简化实现: 只处理部分旋转
-            // 这里我们简单返回原状态 (打乱用)
-            // 为了演示，我们随机交换一些颜色
             const newState = state.map(face => [...face]);
-            // 随机交换一些块
             for (let i = 0; i < 3; i++) {
                 const f1 = Math.floor(Math.random() * 6);
                 const f2 = Math.floor(Math.random() * 6);
@@ -1236,32 +1096,20 @@
         // ============================================================
         function init() {
             initScene();
-            // 确保 renderer 已初始化
             if (!renderer) {
-                console.error('Renderer initialization failed');
+                console.error('Renderer init failed');
                 return;
             }
-            // 绑定颜色点击事件（必须在 renderer 存在后）
-            bindColorPickerEvents();
-            // 初始化颜色选择器状态
-            setupColorPicker();
-            // 构建默认魔方
+            setupColorPickerEvents();
             initDefaultCube();
-
-            // 窗口自适应
             window.addEventListener('resize', onResize);
         }
 
-        // 启动
         init();
-
-        // 暴露一些变量到控制台 (调试)
         console.log('🧩 魔方还原程序已启动！');
-        console.log('点击小面设置颜色，然后点击"开始还原"');
+        console.log('选择颜色 -> 点击小面涂色，每种颜色限9个');
 
-        // ============================================================
-        //  13. 额外: 键盘快捷键
-        // ============================================================
+        // 键盘快捷键
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowRight' || e.key === ' ') {
                 e.preventDefault();
@@ -1273,7 +1121,6 @@
                 btnReset.click();
             }
         });
-
         console.log('⌨️ 快捷键: → 下一步, ← 上一步, R 重置, Space 下一步');
     </script>
 </body>
