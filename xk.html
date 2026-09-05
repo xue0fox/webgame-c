@@ -439,7 +439,31 @@
         ];
 
         // ============================================================
-        //  2. 状态管理
+        //  2. DOM 引用 & 工具函数 (提前定义)
+        // ============================================================
+        const container = document.getElementById('canvas-container');
+        const overlay = document.getElementById('overlay');
+        const stepNumEl = document.getElementById('step-num');
+        const stepTotalEl = document.getElementById('step-total');
+        const stepDescEl = document.getElementById('step-description');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnReset = document.getElementById('btn-reset');
+        const toastEl = document.getElementById('toast');
+        const colorPickerEl = document.getElementById('color-picker');
+
+        // Toast 工具函数 (提前定义，确保所有地方可用)
+        function showToast(msg, duration = 1200) {
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            clearTimeout(toastEl._timer);
+            toastEl._timer = setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, duration);
+        }
+
+        // ============================================================
+        //  3. 状态管理
         // ============================================================
         let cubeState = []; // 6x9 颜色索引
         let userColors = []; // 用户设置的颜色 (6x9)
@@ -461,20 +485,8 @@
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
 
-        // DOM 元素
-        const container = document.getElementById('canvas-container');
-        const overlay = document.getElementById('overlay');
-        const stepNumEl = document.getElementById('step-num');
-        const stepTotalEl = document.getElementById('step-total');
-        const stepDescEl = document.getElementById('step-description');
-        const btnPrev = document.getElementById('btn-prev');
-        const btnNext = document.getElementById('btn-next');
-        const btnReset = document.getElementById('btn-reset');
-        const toastEl = document.getElementById('toast');
-        const colorPickerEl = document.getElementById('color-picker');
-
         // ============================================================
-        //  3. Three.js 初始化
+        //  4. Three.js 初始化
         // ============================================================
         function initScene() {
             const rect = container.getBoundingClientRect();
@@ -549,7 +561,7 @@
         }
 
         // ============================================================
-        //  4. 魔方构建
+        //  5. 魔方构建
         // ============================================================
         function buildCube(colors) {
             // colors: 6x9 颜色索引
@@ -640,7 +652,7 @@
         }
 
         // ============================================================
-        //  5. 颜色计数 & UI 更新
+        //  6. 颜色计数 & UI 更新
         // ============================================================
         function updateColorCounts() {
             colorUsed = [0, 0, 0, 0, 0, 0];
@@ -679,7 +691,6 @@
                     selectedColorIndex = idx;
                     renderColorPicker();
                 });
-                // 触摸优化
                 el.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     const idx = parseInt(el.dataset.index);
@@ -694,7 +705,7 @@
         }
 
         // ============================================================
-        //  6. 颜色设置交互 (点击小面)
+        //  7. 颜色设置交互 (点击小面)
         // ============================================================
         function setupColorPickerEvents() {
             if (!renderer || !renderer.domElement) {
@@ -781,13 +792,12 @@
             // 刷新颜色选择器
             renderColorPicker();
 
-            // 自动切换到下一个颜色（可选），但不强制
             // 显示反馈
             showToast(`${COLOR_NAMES[newColor]} +1`, 400);
         }
 
         // ============================================================
-        //  7. 还原算法 (演示)
+        //  8. 还原算法 (演示)
         // ============================================================
         function computeSolveSteps(state) {
             const steps = [];
@@ -822,7 +832,7 @@
         }
 
         // ============================================================
-        //  8. 执行旋转动画
+        //  9. 执行旋转动画
         // ============================================================
         function performMove(move, callback) {
             const face = move[0];
@@ -919,7 +929,7 @@
         }
 
         // ============================================================
-        //  9. 步骤执行
+        //  10. 步骤执行
         // ============================================================
         function executeStep(index) {
             if (index < 0 || index >= solveSteps.length) return;
@@ -935,7 +945,7 @@
         }
 
         // ============================================================
-        //  10. 主流程控制
+        //  11. 主流程控制
         // ============================================================
         function startSolve() {
             const state = cubeState.map(face => [...face]);
@@ -1003,7 +1013,7 @@
             currentStepIndex = -1;
             isSolving = false;
 
-            // 重置到用户颜色 (但用户颜色可能不完整, 我们重新构建)
+            // 重置到用户颜色
             buildCube(userColors);
             cubeState = userColors.map(face => [...face]);
             updateColorCounts();
@@ -1027,7 +1037,7 @@
         }
 
         // ============================================================
-        //  11. 初始化默认魔方 (打乱状态)
+        //  12. 初始化默认魔方 (打乱状态)
         // ============================================================
         function initDefaultCube() {
             const state = FACE_COLORS.map((c, fi) => Array(9).fill(fi));
@@ -1092,7 +1102,7 @@
         }
 
         // ============================================================
-        //  12. 启动
+        //  13. 启动
         // ============================================================
         function init() {
             initScene();
