@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>隐私政策 - 灵魂回响</title>
+<style>
+  :root {
+    --bg: #0d0f14; --surface: #161a22; --elevated: #1f242e;
+    --tx: #e8eef6; --tx2: #8a94a4; --tx3: #5f6a78;
+    --bd: rgba(255,255,255,.06); --accent: #5b9bd5;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--tx);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px; line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 28px 20px 80px; }
+  .doc-header {
+    padding: 24px; border-radius: 20px; margin-bottom: 24px;
+    background: linear-gradient(180deg, var(--surface), var(--bg));
+    border: 1px solid var(--bd);
+  }
+  h1 { font-size: 22px; font-weight: 900; margin: 0 0 8px; letter-spacing: 1px; }
+  .meta { font-size: 11px; color: var(--tx3); }
+  .meta span { margin-right: 16px; }
+  h2 {
+    font-size: 15px; font-weight: 800; margin: 32px 0 12px;
+    padding-left: 10px; border-left: 3px solid var(--accent);
+    color: var(--tx);
+  }
+  p { margin: 0 0 12px; color: var(--tx2); }
+  ul { margin: 0 0 14px; padding-left: 20px; color: var(--tx2); }
+  li { margin-bottom: 6px; }
+  strong { color: var(--tx); font-weight: 700; }
+  code {
+    background: var(--elevated); padding: 2px 6px; border-radius: 4px;
+    font-size: 12px; color: var(--accent); font-family: ui-monospace, monospace;
+  }
+  .card {
+    padding: 16px 18px; border-radius: 14px; margin-bottom: 14px;
+    background: var(--surface); border: 1px solid var(--bd);
+  }
+  .card.warn { border-color: rgba(224,166,86,.35); background: rgba(224,166,86,.06); }
+  .card.info { border-color: rgba(91,155,213,.3); background: rgba(91,155,213,.06); }
+  .card h3 { font-size: 13px; font-weight: 800; margin: 0 0 8px; color: var(--tx); }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 40px; padding: 12px 20px; border-radius: 12px;
+    background: var(--elevated); border: 1px solid var(--bd);
+    color: var(--tx); font-weight: 700; font-size: 13px;
+  }
+  .back:active { transform: scale(.97); }
+  .divider { height: 1px; background: var(--bd); margin: 28px 0; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f5f6f8; --surface:#fff; --elevated:#eef0f3; --tx:#1a1d23; --tx2:#4a5563; --tx3:#8a94a4; --bd:rgba(0,0,0,.08); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="doc-header">
+    <h1>隐私政策</h1>
+    <div class="meta">
+      <span>适用产品：灵魂回响 / Soul Echo</span>
+      <span>版本：1.0</span>
+      <span>生效日期：2026 年 10 月 17 日</span>
+    </div>
+  </div>
+
+  <div class="card info">
+    <h3>核心承诺</h3>
+    <p>本游戏<strong>不收集、不上传、不共享任何个人身份信息</strong>。所有游戏数据仅保存在您设备的本地存储中，开发者无法访问。本游戏无需注册账号、无需登录、无网络传输。</p>
+  </div>
+
+  <h2>一、我们收集哪些信息</h2>
+  <p>本游戏<strong>不收集任何个人信息</strong>。具体说明如下：</p>
+  <ul>
+    <li><strong>无需账号</strong>：不要求注册、不要求登录、不要求填写邮箱或手机号。</li>
+    <li><strong>无网络请求</strong>：游戏运行时不向任何服务器发送数据（图标资源已内嵌在本地文件中）。</li>
+    <li><strong>无设备信息采集</strong>：不读取 IMEI、MAC 地址、设备序列号、位置信息、通讯录、相册等任何系统权限数据。</li>
+    <li><strong>无统计分析</strong>：不接入第三方统计 SDK（如友盟、Firebase、Google Analytics 等）。</li>
+    <li><strong>无崩溃上报</strong>：原游戏曾集成 Bugsnag 错误监控（会将崩溃信息发送给原作者），该功能已被<strong>完整移除</strong>。</li>
+  </ul>
+
+  <h2>二、本地存储说明</h2>
+  <p>为保存游戏进度，本游戏使用浏览器的 <code>localStorage</code> 在您的设备上存储以下数据。这些数据<strong>永远不会离开您的设备</strong>：</p>
+  <div class="card">
+    <ul>
+      <li><code>SNFGS2</code> — 主存档（关卡、金币、单位、技能等）</li>
+      <li><code>soulPlayerRace</code> / <code>soulEnemyRace</code> — 当前玩家/敌人种族</li>
+      <li><code>soulSummoned</code> — 是否已完成首次种族召唤</li>
+      <li><code>soulRaceCodex</code> — 种族图鉴收集进度</li>
+      <li><code>soulUnitCodex</code> — 兵种图鉴收集进度</li>
+      <li><code>soulDailyQuests</code> — 每日任务进度</li>
+      <li><code>soulSevenDay</code> — 七日签到进度</li>
+      <li><code>soulNewPlayerFlags</code> — 新手引导标记</li>
+      <li><code>soulTargetStrategy</code> — 战斗战术偏好</li>
+      <li><code>soulBounty</code> — 限时悬赏状态</li>
+      <li><code>soulMilestones</code> — 战力里程碑解锁状态</li>
+      <li><code>soulLastActive</code> — 最后活跃时间（用于回归奖励判定）</li>
+      <li><code>soulEndlessTower</code> — 无尽塔最佳层数</li>
+    </ul>
+  </div>
+  <p>您可以随时通过游戏内「信息 → 硬重置」清除全部本地数据，或通过浏览器设置清除站点数据。</p>
+
+  <h2>三、第三方素材授权</h2>
+  <p>本游戏使用的部分美术素材来自第三方开源资源，其授权协议如下：</p>
+  <div class="card">
+    <ul>
+      <li><strong>图标素材</strong>：来自 <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a>，遵循 <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a> 授权协议。该协议要求在使用时保留原作者署名，本游戏已在「信息 → 关于 → 素材鸣谢」中标注。</li>
+      <li><strong>游戏数值与单位设定</strong>：参考《英雄无敌 3：死亡阴影》与《魔兽争霸 3》的公开资料，仅用于玩法设计参考，未使用任何原作美术素材。</li>
+      <li><strong>音频</strong>：全部由 Web Audio API 程序化合成，无第三方音频素材。</li>
+    </ul>
+  </div>
+
+  <h2>四、儿童隐私保护</h2>
+  <p>本游戏不收集任何个人信息，因此不存在收集儿童个人信息的情形。若您为未成年人，建议在监护人指导下使用本游戏。</p>
+
+  <h2>五、广告与第三方服务</h2>
+  <div class="card warn">
+    <h3>重要说明</h3>
+    <p><strong>当前版本不含任何广告 SDK</strong>。游戏内的「看广告 · 双倍领取」按钮为功能占位，点击后直接发放双倍奖励，不会加载任何广告、不会调用任何广告平台接口。</p>
+    <p>若未来版本接入广告服务（如激励视频），本政策将在接入前更新，并明确告知所接入的广告平台名称、其收集的数据类型及跳转至对应平台的隐私政策链接。</p>
+  </div>
+
+  <h2>六、数据安全</h2>
+  <p>由于所有数据仅存储在您的设备本地，其安全性取决于您设备的安全状态。建议您：</p>
+  <ul>
+    <li>不要在公共设备上保留重要游戏进度</li>
+    <li>定期通过游戏内「导出存档」功能备份进度</li>
+    <li>清除浏览器数据前，先导出存档</li>
+  </ul>
+
+  <h2>七、您的权利</h2>
+  <p>您对本地数据拥有完全控制权：</p>
+  <ul>
+    <li><strong>查看</strong>：通过「信息 → 保存」查看当前存档内容</li>
+    <li><strong>导出</strong>：通过「复制」按钮导出存档文本</li>
+    <li><strong>删除</strong>：通过「信息 → 硬重置」清除全部数据</li>
+    <li><strong>迁移</strong>：通过「信息 → 读取」载入存档到其他设备</li>
+  </ul>
+
+  <h2>八、政策更新</h2>
+  <p>若本政策发生重大变更（如接入广告服务、新增数据收集），我们将在游戏内以弹窗形式通知您，并在本页面更新版本号与生效日期。继续使用本游戏即表示您接受更新后的政策。</p>
+
+  <h2>九、免责声明</h2>
+  <div class="card warn">
+    <p>本游戏为个人开发的独立作品，按「现状」提供，不提供任何明示或暗示的担保。开发者不对因使用本游戏导致的任何直接或间接损失承担责任，包括但不限于：设备数据丢失、游戏进度损坏、因浏览器清除数据导致的进度丢失等。</p>
+  </div>
+
+  <h2>十、联系我们</h2>
+  <p>如您对本隐私政策有任何疑问、意见或投诉，可通过以下方式联系开发者：</p>
+  <div class="card">
+    <p><strong>联系邮箱</strong>：<code>[请填写您的联系邮箱]</code></p>
+    <p><strong>问题反馈</strong>：<code>[请填写反馈渠道，如 GitHub Issues 链接]</code></p>
+    <p style="color:var(--tx3);font-size:12px;margin-top:12px;">我们将在收到反馈后 7 个工作日内回复。</p>
+  </div>
+
+  <div class="divider"></div>
+  <p style="font-size:12px;color:var(--tx3);text-align:center;">本政策最后更新于 2026 年 10 月 17 日</p>
+
+  <a href="index.html" class="back">← 返回游戏</a>
+
+</div>
+</body>
+</html>
